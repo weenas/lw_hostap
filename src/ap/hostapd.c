@@ -84,7 +84,7 @@ int hostapd_reload_config(struct hostapd_iface *iface)
 	else
 		hapd->drv.set_drv_ieee8021x(hapd, hapd->conf->iface, 0);
 
-	if (hapd->conf->wpa && hapd->wpa_auth == NULL)
+	/*if (hapd->conf->wpa && hapd->wpa_auth == NULL) {
 		hostapd_setup_wpa(hapd);
 	else if (hapd->conf->wpa) {
 		const u8 *wpa_ie;
@@ -100,7 +100,7 @@ int hostapd_reload_config(struct hostapd_iface *iface)
 		hostapd_set_privacy(hapd, 0);
 		hostapd_setup_encryption(hapd->conf->iface, hapd);
 		hostapd_set_generic_elem(hapd, (u8 *) "", 0);
-	}
+	}*/
 
 	ieee802_11_set_beacon(hapd);
 	hostapd_update_wps(hapd);
@@ -216,7 +216,7 @@ static void hostapd_cleanup(struct hostapd_data *hapd)
 	iapp_deinit(hapd->iapp);
 	hapd->iapp = NULL;
 	accounting_deinit(hapd);
-	hostapd_deinit_wpa(hapd);
+	/*hostapd_deinit_wpa(hapd);*/
 	vlan_deinit(hapd);
 	hostapd_acl_deinit(hapd);
 #ifndef CONFIG_NO_RADIUS
@@ -586,13 +586,13 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 	if (authsrv_init(hapd) < 0)
 		return -1;
 
-	if (ieee802_1x_init(hapd)) {
+	/*if (ieee802_1x_init(hapd)) {
 		wpa_printf(MSG_ERROR, "IEEE 802.1X initialization failed.");
 		return -1;
 	}
 
 	if (hapd->conf->wpa && hostapd_setup_wpa(hapd))
-		return -1;
+		return -1;*/
 
 	if (accounting_init(hapd)) {
 		wpa_printf(MSG_ERROR, "Accounting initialization failed.");
@@ -894,7 +894,7 @@ void hostapd_new_assoc_sta(struct hostapd_data *hapd, struct sta_info *sta,
 		accounting_sta_start(hapd, sta);
 
 	/* Start IEEE 802.1X authentication process for new stations */
-	ieee802_1x_new_station(hapd, sta);
+	/*ieee802_1x_new_station(hapd, sta);*/
 	if (reassoc) {
 		if (sta->auth_alg != WLAN_AUTH_FT &&
 		    !(sta->flags & (WLAN_STA_WPS | WLAN_STA_MAYBE_WPS)))

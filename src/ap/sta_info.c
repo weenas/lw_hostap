@@ -195,7 +195,7 @@ void ap_free_sta(struct hostapd_data *hapd, struct sta_info *sta)
 	eloop_cancel_timeout(ap_handle_timer, hapd, sta);
 	eloop_cancel_timeout(ap_handle_session_timer, hapd, sta);
 
-	ieee802_1x_free_station(sta);
+	/*ieee802_1x_free_station(sta);*/
 	wpa_auth_sta_deinit(sta->wpa_sm);
 	rsn_preauth_free_station(hapd, sta);
 #ifndef CONFIG_NO_RADIUS
@@ -363,12 +363,12 @@ void ap_handle_timer(void *eloop_ctx, void *timeout_ctx)
 		break;
 	case STA_DISASSOC:
 		sta->flags &= ~WLAN_STA_ASSOC;
-		ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);
+		/*ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);*/
 		if (!sta->acct_terminate_cause)
 			sta->acct_terminate_cause =
 				RADIUS_ACCT_TERMINATE_CAUSE_IDLE_TIMEOUT;
 		accounting_sta_stop(hapd, sta);
-		ieee802_1x_free_station(sta);
+		/*ieee802_1x_free_station(sta);*/
 		hostapd_logger(hapd, sta->addr, HOSTAPD_MODULE_IEEE80211,
 			       HOSTAPD_LEVEL_INFO, "disassociated due to "
 			       "inactivity");
@@ -475,7 +475,7 @@ struct sta_info * ap_sta_add(struct hostapd_data *hapd, const u8 *addr)
 
 static int ap_sta_remove(struct hostapd_data *hapd, struct sta_info *sta)
 {
-	ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);
+	/*ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);*/
 
 	wpa_printf(MSG_DEBUG, "Removing STA " MACSTR " from kernel driver",
 		   MAC2STR(sta->addr));
@@ -526,7 +526,7 @@ void ap_sta_disassociate(struct hostapd_data *hapd, struct sta_info *sta,
 	eloop_register_timeout(AP_MAX_INACTIVITY_AFTER_DISASSOC, 0,
 			       ap_handle_timer, hapd, sta);
 	accounting_sta_stop(hapd, sta);
-	ieee802_1x_free_station(sta);
+	/*ieee802_1x_free_station(sta);*/
 
 	mlme_disassociate_indication(hapd, sta, reason);
 }
@@ -544,7 +544,7 @@ void ap_sta_deauthenticate(struct hostapd_data *hapd, struct sta_info *sta,
 	eloop_register_timeout(AP_MAX_INACTIVITY_AFTER_DEAUTH, 0,
 			       ap_handle_timer, hapd, sta);
 	accounting_sta_stop(hapd, sta);
-	ieee802_1x_free_station(sta);
+	/*ieee802_1x_free_station(sta);*/
 
 	mlme_deauthenticate_indication(hapd, sta, reason);
 }

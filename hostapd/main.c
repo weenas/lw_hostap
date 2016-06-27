@@ -367,10 +367,10 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces)
 {
 	hostapd_logger_register_cb(hostapd_logger_cb);
 
-	if (eap_server_register_methods()) {
+	/*if (eap_server_register_methods()) {
 		wpa_printf(MSG_ERROR, "Failed to register EAP methods");
 		return -1;
-	}
+	}*/
 
 	if (eloop_init()) {
 		wpa_printf(MSG_ERROR, "Failed to initialize event loop");
@@ -403,7 +403,7 @@ static void hostapd_global_deinit(const char *pid_file)
 	closelog();
 #endif /* CONFIG_NATIVE_WINDOWS */
 
-	eap_server_unregister_methods();
+	/*eap_server_unregister_methods();*/
 
 	os_daemonize_terminate(pid_file);
 }

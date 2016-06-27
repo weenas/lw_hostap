@@ -180,7 +180,7 @@ skip_wpa_check:
 
 	hostapd_new_assoc_sta(hapd, sta, !new_assoc);
 
-	ieee802_1x_notify_port_enabled(sta->eapol_sm, 1);
+	/*ieee802_1x_notify_port_enabled(sta->eapol_sm, 1);*/
 
 #ifdef CONFIG_P2P
 	if (elems.p2p) {
@@ -212,7 +212,7 @@ void hostapd_notif_disassoc(struct hostapd_data *hapd, const u8 *addr)
 		MAC2STR(sta->addr));
 	wpa_auth_sm_event(sta->wpa_sm, WPA_DISASSOC);
 	sta->acct_terminate_cause = RADIUS_ACCT_TERMINATE_CAUSE_USER_REQUEST;
-	ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);
+	/*ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);*/
 	ap_free_sta(hapd, sta);
 }
 
@@ -392,7 +392,7 @@ static int hostapd_event_new_sta(struct hostapd_data *hapd, const u8 *addr)
 }
 
 
-static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
+/*static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
 				   const u8 *data, size_t data_len)
 {
 	struct hostapd_iface *iface = hapd->iface;
@@ -406,7 +406,7 @@ static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
 	}
 
 	ieee802_1x_receive(hapd, src, data, data_len);
-}
+}*/
 
 
 void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
@@ -464,11 +464,11 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 	case EVENT_NEW_STA:
 		hostapd_event_new_sta(hapd, data->new_sta.addr);
 		break;
-	case EVENT_EAPOL_RX:
+	/*case EVENT_EAPOL_RX:
 		hostapd_event_eapol_rx(hapd, data->eapol_rx.src,
 				       data->eapol_rx.data,
 				       data->eapol_rx.data_len);
-		break;
+		break;*/
 	case EVENT_ASSOC:
 		hostapd_notif_assoc(hapd, data->assoc_info.addr,
 				    data->assoc_info.req_ies,
