@@ -27,6 +27,10 @@ ifeq ($(CONFIG_OS), internal)
 CFLAGS += -DOS_NO_C_LIB_DEFINES
 endif
 
+ifeq ($(CONFIG_OS), none)
+CFLAGS += -DOS_NO_C_LIB_DEFINES
+endif
+
 ifdef CONFIG_NATIVE_WINDOWS
 CFLAGS += -DCONFIG_NATIVE_WINDOWS
 LIBS += -lws2_32
