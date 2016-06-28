@@ -727,6 +727,10 @@ ifdef CONFIG_NO_STDOUT_DEBUG
 CFLAGS += -DCONFIG_NO_STDOUT_DEBUG
 endif
 
+ifdef CONFIG_NO_WPA_MSG
+CFLAGS += -DCONFIG_NO_WPA_MSG
+endif
+
 #ALL=hostapd hostapd_cli
 ALL=hostapd
 
