@@ -26,8 +26,6 @@
 #include "eap_server/tncs.h"
 #include "ap/hostapd.h"
 #include "ap/ap_config.h"
-#include "eap_register.h"
-#include "dump_state.h"
 #include "ctrl_iface.h"
 
 
