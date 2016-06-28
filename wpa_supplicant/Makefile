@@ -12,7 +12,8 @@ export BINDIR ?= /usr/local/sbin/
 CFLAGS += -I../src
 CFLAGS += -I../src/utils
 
-ALL=wpa_supplicant wpa_passphrase wpa_cli
+#ALL=wpa_supplicant wpa_passphrase wpa_cli
+ALL=wpa_supplicant
 
 all: verify_config $(ALL) dynamic_eap_methods
 
@@ -38,7 +39,7 @@ install: all
 	for i in $(ALL); do cp $$i $(DESTDIR)$(BINDIR)/$$i; done
 	$(MAKE) -C ../src install
 
-OBJS = config.o
+#OBJS = config.o
 OBJS += notify.o
 OBJS += bss.o
 OBJS += eap_register.o
@@ -62,6 +63,10 @@ endif
 endif
 
 ifeq ($(CONFIG_OS), internal)
+CFLAGS += -DOS_NO_C_LIB_DEFINES
+endif
+
+ifeq ($(CONFIG_OS), none)
 CFLAGS += -DOS_NO_C_LIB_DEFINES
 endif
 

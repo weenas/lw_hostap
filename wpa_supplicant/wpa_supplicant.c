@@ -385,7 +385,7 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 		struct wpa_ssid *ssid;
 		for (ssid = wpa_s->conf->ssid; ssid; ssid = ssid->next)
 			wpas_notify_network_removed(wpa_s, ssid);
-		wpa_config_free(wpa_s->conf);
+		/*wpa_config_free(wpa_s->conf);*/
 		wpa_s->conf = NULL;
 	}
 
@@ -672,7 +672,7 @@ int wpa_supplicant_reload_configuration(struct wpa_supplicant *wpa_s)
 	rsn_preauth_deinit(wpa_s->wpa);
 
 	old_ap_scan = wpa_s->conf->ap_scan;
-	wpa_config_free(wpa_s->conf);
+	/*wpa_config_free(wpa_s->conf);*/
 	wpa_s->conf = conf;
 	if (old_ap_scan != wpa_s->conf->ap_scan)
 		wpas_notify_ap_scan_changed(wpa_s);
@@ -1992,8 +1992,8 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s,
 				os_strdup(iface->driver_param);
 		}
 	} else
-		wpa_s->conf = wpa_config_alloc_empty(iface->ctrl_interface,
-						     iface->driver_param);
+		/*wpa_s->conf = wpa_config_alloc_empty(iface->ctrl_interface,
+						     iface->driver_param);*/
 
 	if (wpa_s->conf == NULL) {
 		wpa_printf(MSG_ERROR, "\nNo configuration found.");

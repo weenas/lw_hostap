@@ -27,7 +27,7 @@ struct wpa_config * wpa_config_read(const char *name)
 {
 	struct wpa_config *config;
 
-	config = wpa_config_alloc_empty(NULL, NULL);
+	/*config = wpa_config_alloc_empty(NULL, NULL);*/
 	if (config == NULL)
 		return NULL;
 	/* TODO: fill in configuration data */
