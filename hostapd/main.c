@@ -26,7 +26,6 @@
 #include "eap_server/tncs.h"
 #include "ap/hostapd.h"
 #include "ap/ap_config.h"
-#include "config_file.h"
 #include "eap_register.h"
 #include "dump_state.h"
 #include "ctrl_iface.h"
@@ -183,27 +182,17 @@ static struct hostapd_iface * hostapd_init(const char *config_file)
 	if (hapd_iface == NULL)
 		goto fail;
 
-	hapd_iface->reload_config = hostapd_reload_config;
-	hapd_iface->config_read_cb = hostapd_config_read;
-	hapd_iface->config_fname = os_strdup(config_file);
-	if (hapd_iface->config_fname == NULL)
-		goto fail;
 	hapd_iface->ctrl_iface_init = hostapd_ctrl_iface_init;
 	hapd_iface->ctrl_iface_deinit = hostapd_ctrl_iface_deinit;
 	hapd_iface->for_each_interface = hostapd_for_each_interface;
 
-	conf = hostapd_config_read(hapd_iface->config_fname);
-	if (conf == NULL)
-		goto fail;
-	hapd_iface->conf = conf;
-
-	hapd_iface->num_bss = conf->num_bss;
-	hapd_iface->bss = os_zalloc(conf->num_bss *
+	hapd_iface->num_bss = HOSTAPD_NUM_BSS;
+	hapd_iface->bss = os_zalloc(hapd_iface->num_bss *
 				    sizeof(struct hostapd_data *));
 	if (hapd_iface->bss == NULL)
 		goto fail;
 
-	for (i = 0; i < conf->num_bss; i++) {
+	for (i = 0; i < hapd_iface->num_bss; i++) {
 		hapd = hapd_iface->bss[i] =
 			hostapd_alloc_bss_data(hapd_iface, conf,
 					       &conf->bss[i]);
@@ -215,10 +204,7 @@ static struct hostapd_iface * hostapd_init(const char *config_file)
 	return hapd_iface;
 
 fail:
-	if (conf)
-		hostapd_config_free(conf);
 	if (hapd_iface) {
-		os_free(hapd_iface->config_fname);
 		os_free(hapd_iface->bss);
 		os_free(hapd_iface);
 	}
@@ -330,29 +316,6 @@ static void handle_term(int sig, void *signal_ctx)
 
 
 #ifndef CONFIG_NATIVE_WINDOWS
-
-static int handle_reload_iface(struct hostapd_iface *iface, void *ctx)
-{
-	if (hostapd_reload_config(iface) < 0) {
-		wpa_printf(MSG_WARNING, "Failed to read new configuration "
-			   "file - continuing with old.");
-	}
-	return 0;
-}
-
-
-/**
- * handle_reload - SIGHUP handler to reload configuration
- */
-static void handle_reload(int sig, void *signal_ctx)
-{
-	struct hapd_interfaces *interfaces = signal_ctx;
-	wpa_printf(MSG_DEBUG, "Signal %d received - reloading configuration",
-		   sig);
-	hostapd_for_each_interface(interfaces, handle_reload_iface, NULL);
-}
-
-
 static void handle_dump_state(int sig, void *signal_ctx)
 {
 #ifdef HOSTAPD_DUMP_STATE
@@ -378,7 +341,6 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces)
 	}
 
 #ifndef CONFIG_NATIVE_WINDOWS
-	eloop_register_signal(SIGHUP, handle_reload, interfaces);
 	eloop_register_signal(SIGUSR1, handle_dump_state, interfaces);
 #endif /* CONFIG_NATIVE_WINDOWS */
 	eloop_register_signal_terminate(handle_term, interfaces);

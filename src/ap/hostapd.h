@@ -202,6 +202,7 @@ struct hostapd_data {
 };
 
 
+#define HOSTAPD_NUM_BSS (1)
 /**
  * struct hostapd_iface - hostapd per-interface data structure
  */
