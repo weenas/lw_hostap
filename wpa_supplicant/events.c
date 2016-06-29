@@ -34,13 +34,7 @@
 #include "blacklist.h"
 #include "wpas_glue.h"
 #include "wps_supplicant.h"
-#include "ibss_rsn.h"
-#include "sme.h"
-#include "p2p_supplicant.h"
-#include "bgscan.h"
-#include "ap.h"
 #include "bss.h"
-#include "mlme.h"
 #include "scan.h"
 
 
@@ -839,11 +833,6 @@ static void wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 		return;
 	}
 
-	if (bgscan_notify_scan(wpa_s, scan_res) == 1) {
-		wpa_scan_results_free(scan_res);
-		return;
-	}
-
 	wpa_supplicant_rsn_preauth_scan_results(wpa_s, scan_res);
 
 	selected = wpa_supplicant_pick_network(wpa_s, scan_res, &ssid);
@@ -1062,11 +1051,8 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 		return;
 
 	wpa_supplicant_set_state(wpa_s, WPA_ASSOCIATED);
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-		os_memcpy(bssid, wpa_s->bssid, ETH_ALEN);
-	if ((wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME) ||
-	    (wpa_drv_get_bssid(wpa_s, bssid) >= 0 &&
-	     os_memcmp(bssid, wpa_s->bssid, ETH_ALEN) != 0)) {
+	if (wpa_drv_get_bssid(wpa_s, bssid) >= 0 &&
+	    os_memcmp(bssid, wpa_s->bssid, ETH_ALEN) != 0) {
 		wpa_msg(wpa_s, MSG_DEBUG, "Associated to a new BSS: BSSID="
 			MACSTR, MAC2STR(bssid));
 		bssid_changed = os_memcmp(wpa_s->bssid, bssid, ETH_ALEN);
@@ -1173,25 +1159,6 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 		wpa_s->pending_eapol_rx = NULL;
 	}
 
-#ifdef CONFIG_BGSCAN
-	if (wpa_s->current_ssid != wpa_s->bgscan_ssid) {
-		bgscan_deinit(wpa_s);
-		if (wpa_s->current_ssid && wpa_s->current_ssid->bgscan) {
-			if (bgscan_init(wpa_s, wpa_s->current_ssid)) {
-				wpa_printf(MSG_DEBUG, "Failed to initialize "
-					   "bgscan");
-				/*
-				 * Live without bgscan; it is only used as a
-				 * roaming optimization, so the initial
-				 * connection is not affected.
-				 */
-			} else
-				wpa_s->bgscan_ssid = wpa_s->current_ssid;
-		} else
-			wpa_s->bgscan_ssid = NULL;
-	}
-#endif /* CONFIG_BGSCAN */
-
 	if ((wpa_s->key_mgmt == WPA_KEY_MGMT_NONE ||
 	     wpa_s->key_mgmt == WPA_KEY_MGMT_IEEE8021X_NO_WPA) &&
 	    wpa_s->current_ssid && wpa_drv_get_capa(wpa_s, &capa) == 0 &&
@@ -1257,22 +1224,6 @@ static void wpa_supplicant_event_disassoc(struct wpa_supplicant *wpa_s,
 		wpa_clear_keys(wpa_s, wpa_s->bssid);
 	}
 	wpa_supplicant_mark_disassoc(wpa_s);
-	bgscan_deinit(wpa_s);
-	wpa_s->bgscan_ssid = NULL;
-#ifdef CONFIG_SME
-	if (authenticating &&
-	    (wpa_s->drv_flags & WPA_DRIVER_FLAGS_SME)) {
-		/*
-		 * mac80211-workaround to force deauth on failed auth cmd,
-		 * requires us to remain in authenticating state to allow the
-		 * second authentication attempt to be continued properly.
-		 */
-		wpa_printf(MSG_DEBUG, "SME: Allow pending authentication to "
-			   "proceed after disconnection event");
-		wpa_supplicant_set_state(wpa_s, WPA_AUTHENTICATING);
-		os_memcpy(wpa_s->pending_bssid, prev_pending_bssid, ETH_ALEN);
-	}
-#endif /* CONFIG_SME */
 }
 
 
@@ -1481,8 +1432,6 @@ static void ft_rx_action(struct wpa_supplicant *wpa_s, const u8 *data,
 	u16 status;
 
 	wpa_hexdump(MSG_MSGDUMP, "FT: RX Action", data, len);
-	if (!(wpa_s->drv_flags & WPA_DRIVER_FLAGS_SME))
-		return; /* only SME case supported for now */
 	if (len < 1 + 2 * ETH_ALEN + 2)
 		return;
 	if (data[0] != 2)
@@ -1545,9 +1494,6 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 		   event, wpa_s->ifname);
 
 	switch (event) {
-	case EVENT_AUTH:
-		sme_event_auth(wpa_s, data);
-		break;
 	case EVENT_ASSOC:
 		wpa_supplicant_event_assoc(wpa_s, data);
 		break;
@@ -1579,8 +1525,6 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 				data->disassoc_info.ie_len);
 #endif /* CONFIG_P2P */
 		}
-		if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_SME)
-			sme_event_disassoc(wpa_s, data);
 		/* fall through */
 	case EVENT_DEAUTH:
 		if (event == EVENT_DEAUTH) {
@@ -1649,15 +1593,6 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 		wpa_supplicant_event_ibss_rsn_start(wpa_s, data);
 		break;
 #endif /* CONFIG_IBSS_RSN */
-	case EVENT_ASSOC_REJECT:
-		sme_event_assoc_reject(wpa_s, data);
-		break;
-	case EVENT_AUTH_TIMED_OUT:
-		sme_event_auth_timed_out(wpa_s, data);
-		break;
-	case EVENT_ASSOC_TIMED_OUT:
-		sme_event_assoc_timed_out(wpa_s, data);
-		break;
 #ifdef CONFIG_AP
 	case EVENT_TX_STATUS:
 		wpa_printf(MSG_DEBUG, "EVENT_TX_STATUS on %s dst=" MACSTR
@@ -1780,27 +1715,10 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 				      data->rx_probe_req.ie_len);
 		break;
 #endif /* CONFIG_P2P */
-#ifdef CONFIG_CLIENT_MLME
-	case EVENT_MLME_RX: {
-		struct ieee80211_rx_status rx_status;
-		os_memset(&rx_status, 0, sizeof(rx_status));
-		rx_status.freq = data->mlme_rx.freq;
-		rx_status.channel = data->mlme_rx.channel;
-		rx_status.ssi = data->mlme_rx.ssi;
-		ieee80211_sta_rx(wpa_s, data->mlme_rx.buf, data->mlme_rx.len,
-				 &rx_status);
-		break;
-	}
-#endif /* CONFIG_CLIENT_MLME */
 	case EVENT_EAPOL_RX:
 		wpa_supplicant_rx_eapol(wpa_s, data->eapol_rx.src,
 					data->eapol_rx.data,
 					data->eapol_rx.data_len);
-		break;
-	case EVENT_SIGNAL_CHANGE:
-		bgscan_notify_signal_change(
-			wpa_s, data->signal_change.above_threshold,
-			data->signal_change.current_signal);
 		break;
 	case EVENT_INTERFACE_ENABLED:
 		wpa_printf(MSG_DEBUG, "Interface was enabled");

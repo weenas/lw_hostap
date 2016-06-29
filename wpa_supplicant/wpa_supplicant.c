@@ -34,18 +34,12 @@
 #include "rsn_supp/preauth.h"
 #include "rsn_supp/pmksa_cache.h"
 #include "common/wpa_ctrl.h"
-#include "mlme.h"
 #include "common/ieee802_11_defs.h"
 #include "p2p/p2p.h"
 #include "blacklist.h"
 #include "wpas_glue.h"
 #include "wps_supplicant.h"
-#include "ibss_rsn.h"
-#include "sme.h"
-#include "ap.h"
-#include "p2p_supplicant.h"
 #include "notify.h"
-#include "bgscan.h"
 #include "bss.h"
 #include "scan.h"
 
@@ -365,7 +359,6 @@ void wpa_supplicant_set_non_wpa_policy(struct wpa_supplicant *wpa_s,
 
 static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 {
-	bgscan_deinit(wpa_s);
 	scard_deinit(wpa_s->scard);
 	wpa_s->scard = NULL;
 	wpa_sm_set_scard_ctx(wpa_s->wpa, NULL);
@@ -407,8 +400,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 
 	wpa_supplicant_cancel_scan(wpa_s);
 	wpa_supplicant_cancel_auth_timeout(wpa_s);
-
-	ieee80211_sta_deinit(wpa_s);
 
 	wpas_wps_deinit(wpa_s);
 
@@ -1033,12 +1024,6 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		return;
 	}
 
-	if ((wpa_s->drv_flags & WPA_DRIVER_FLAGS_SME) &&
-	    ssid->mode == IEEE80211_MODE_INFRA) {
-		sme_authenticate(wpa_s, bss, ssid);
-		return;
-	}
-
 	os_memset(&params, 0, sizeof(params));
 	wpa_s->reassociate = 0;
 	if (bss) {
@@ -1288,10 +1273,7 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	else
 		params.uapsd = -1;
 
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-		ret = ieee80211_sta_associate(wpa_s, &params);
-	else
-		ret = wpa_drv_associate(wpa_s, &params);
+	ret = wpa_drv_associate(wpa_s, &params);
 	if (ret < 0) {
 		wpa_msg(wpa_s, MSG_INFO, "Association request to the driver "
 			"failed");
@@ -1388,10 +1370,7 @@ void wpa_supplicant_disassociate(struct wpa_supplicant *wpa_s,
 	u8 *addr = NULL;
 
 	if (!is_zero_ether_addr(wpa_s->bssid)) {
-		if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-			ieee80211_sta_disassociate(wpa_s, reason_code);
-		else
-			wpa_drv_disassociate(wpa_s, wpa_s->bssid, reason_code);
+		wpa_drv_disassociate(wpa_s, wpa_s->bssid, reason_code);
 		addr = wpa_s->bssid;
 	}
 
@@ -1413,11 +1392,7 @@ void wpa_supplicant_deauthenticate(struct wpa_supplicant *wpa_s,
 	u8 *addr = NULL;
 
 	if (!is_zero_ether_addr(wpa_s->bssid)) {
-		if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-			ieee80211_sta_deauthenticate(wpa_s, reason_code);
-		else
-			wpa_drv_deauthenticate(wpa_s, wpa_s->bssid,
-					       reason_code);
+		wpa_drv_deauthenticate(wpa_s, wpa_s->bssid, reason_code);
 		addr = wpa_s->bssid;
 	}
 
@@ -1642,25 +1617,15 @@ struct wpa_ssid * wpa_supplicant_get_ssid(struct wpa_supplicant *wpa_s)
 	u8 bssid[ETH_ALEN];
 	int wired;
 
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME) {
-		if (ieee80211_sta_get_ssid(wpa_s, ssid, &ssid_len)) {
-			wpa_printf(MSG_WARNING, "Could not read SSID from "
-				   "MLME.");
-			return NULL;
-		}
-	} else {
-		res = wpa_drv_get_ssid(wpa_s, ssid);
-		if (res < 0) {
-			wpa_printf(MSG_WARNING, "Could not read SSID from "
-				   "driver.");
-			return NULL;
-		}
-		ssid_len = res;
+	res = wpa_drv_get_ssid(wpa_s, ssid);
+	if (res < 0) {
+		wpa_printf(MSG_WARNING, "Could not read SSID from "
+			   "driver.");
+		return NULL;
 	}
+	ssid_len = res;
 
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-		os_memcpy(bssid, wpa_s->bssid, ETH_ALEN);
-	else if (wpa_drv_get_bssid(wpa_s, bssid) < 0) {
+	if (wpa_drv_get_bssid(wpa_s, bssid) < 0) {
 		wpa_printf(MSG_WARNING, "Could not read BSSID from driver.");
 		return NULL;
 	}
@@ -2095,10 +2060,6 @@ next_driver:
 
 	if (wpa_drv_get_capa(wpa_s, &capa) == 0) {
 		wpa_s->drv_flags = capa.flags;
-		if (capa.flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME) {
-			if (ieee80211_sta_init(wpa_s))
-				return -1;
-		}
 		wpa_s->max_scan_ssids = capa.max_scan_ssids;
 		wpa_s->max_remain_on_chan = capa.max_remain_on_chan;
 		wpa_s->max_stations = capa.max_stations;
@@ -2329,15 +2290,6 @@ struct wpa_global * wpa_supplicant_init(struct wpa_params *params)
 	wpa_debug_open_file(params->wpa_debug_file_path);
 	if (params->wpa_debug_syslog)
 		wpa_debug_open_syslog();
-
-	ret = eap_register_methods();
-	if (ret) {
-		wpa_printf(MSG_ERROR, "Failed to register EAP methods");
-		if (ret == -2)
-			wpa_printf(MSG_ERROR, "Two or more EAP methods used "
-				   "the same EAP type.");
-		return NULL;
-	}
 
 	global = os_zalloc(sizeof(*global));
 	if (global == NULL)

@@ -42,7 +42,7 @@ install: all
 #OBJS = config.o
 OBJS += notify.o
 OBJS += bss.o
-OBJS += eap_register.o
+#OBJS += eap_register.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
 OBJS += ../src/utils/wpabuf.o
@@ -154,7 +154,7 @@ ifndef CONFIG_NO_WPA
 OBJS += ../src/rsn_supp/wpa.o
 OBJS += ../src/rsn_supp/preauth.o
 OBJS += ../src/rsn_supp/pmksa_cache.o
-OBJS += ../src/rsn_supp/peerkey.o
+#OBJS += ../src/rsn_supp/peerkey.o
 OBJS += ../src/rsn_supp/wpa_ie.o
 OBJS += ../src/common/wpa_common.o
 NEED_AES=y

@@ -24,7 +24,7 @@
 #include "dbus/dbus_new.h"
 #include "driver_i.h"
 #include "scan.h"
-#include "p2p_supplicant.h"
+/*#include "p2p_supplicant.h"*/
 #include "notify.h"
 
 int wpas_notify_supplicant_initialized(struct wpa_global *global)

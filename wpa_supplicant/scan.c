@@ -20,9 +20,7 @@
 #include "config.h"
 #include "wpa_supplicant_i.h"
 #include "driver_i.h"
-#include "mlme.h"
 #include "wps_supplicant.h"
-#include "p2p_supplicant.h"
 #include "p2p/p2p.h"
 #include "notify.h"
 #include "bss.h"
@@ -191,10 +189,7 @@ int wpa_supplicant_trigger_scan(struct wpa_supplicant *wpa_s,
 
 	wpa_supplicant_notify_scanning(wpa_s, 1);
 
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-		ret = ieee80211_sta_req_scan(wpa_s, params);
-	else
-		ret = wpa_drv_scan(wpa_s, params);
+	ret = wpa_drv_scan(wpa_s, params);
 
 	if (ret) {
 		wpa_supplicant_notify_scanning(wpa_s, 0);
@@ -283,14 +278,9 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 		return;
 	}
 
-	if ((wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME) ||
-	    wpa_s->conf->ap_scan == 2)
-		max_ssids = 1;
-	else {
-		max_ssids = wpa_s->max_scan_ssids;
-		if (max_ssids > WPAS_MAX_SCAN_SSIDS)
-			max_ssids = WPAS_MAX_SCAN_SSIDS;
-	}
+	max_ssids = wpa_s->max_scan_ssids;
+	if (max_ssids > WPAS_MAX_SCAN_SSIDS)
+		max_ssids = WPAS_MAX_SCAN_SSIDS;
 
 #ifdef CONFIG_WPS
 	wps = wpas_wps_in_use(wpa_s->conf, &req_type);
@@ -772,10 +762,7 @@ wpa_supplicant_get_scan_results(struct wpa_supplicant *wpa_s,
 	size_t i;
 	int (*compar)(const void *, const void *) = wpa_scan_result_compar;
 
-	if (wpa_s->drv_flags & WPA_DRIVER_FLAGS_USER_SPACE_MLME)
-		scan_res = ieee80211_sta_get_scan_results(wpa_s);
-	else
-		scan_res = wpa_drv_get_scan_results2(wpa_s);
+	scan_res = wpa_drv_get_scan_results2(wpa_s);
 	if (scan_res == NULL) {
 		wpa_printf(MSG_DEBUG, "Failed to get scan results");
 		return NULL;
