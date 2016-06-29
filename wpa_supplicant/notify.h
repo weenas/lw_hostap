@@ -19,8 +19,8 @@ struct wps_credential;
 struct wps_event_m2d;
 struct wps_event_fail;
 
-int wpas_notify_supplicant_initialized(struct wpa_global *global);
-void wpas_notify_supplicant_deinitialized(struct wpa_global *global);
+int wpas_notify_supplicant_initialized(struct wpa_supplicant *wpa_s);
+void wpas_notify_supplicant_deinitialized(struct wpa_supplicant *wpa_s);
 int wpas_notify_iface_added(struct wpa_supplicant *wpa_s);
 void wpas_notify_iface_removed(struct wpa_supplicant *wpa_s);
 void wpas_notify_state_changed(struct wpa_supplicant *wpa_s,
@@ -72,10 +72,10 @@ void wpas_notify_bss_rates_changed(struct wpa_supplicant *wpa_s,
 void wpas_notify_blob_added(struct wpa_supplicant *wpa_s, const char *name);
 void wpas_notify_blob_removed(struct wpa_supplicant *wpa_s, const char *name);
 
-void wpas_notify_debug_level_changed(struct wpa_global *global);
-void wpas_notify_debug_timestamp_changed(struct wpa_global *global);
-void wpas_notify_debug_show_keys_changed(struct wpa_global *global);
-void wpas_notify_suspend(struct wpa_global *global);
-void wpas_notify_resume(struct wpa_global *global);
+void wpas_notify_debug_level_changed(struct wpa_supplicant *wpa_s);
+void wpas_notify_debug_timestamp_changed(struct wpa_supplicant *wpa_s);
+void wpas_notify_debug_show_keys_changed(struct wpa_supplicant *wpa_s);
+void wpas_notify_suspend(struct wpa_supplicant *wpa_s);
+void wpas_notify_resume(struct wpa_supplicant *wpa_s);
 
 #endif /* NOTIFY_H */
