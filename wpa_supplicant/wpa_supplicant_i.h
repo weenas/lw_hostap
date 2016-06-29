@@ -44,144 +44,6 @@ struct ctrl_iface_priv;
 struct ctrl_iface_global_priv;
 struct wpas_dbus_priv;
 
-/**
- * struct wpa_interface - Parameters for wpa_supplicant_add_iface()
- */
-struct wpa_interface {
-	/**
-	 * confname - Configuration name (file or profile) name
-	 *
-	 * This can also be %NULL when a configuration file is not used. In
-	 * that case, ctrl_interface must be set to allow the interface to be
-	 * configured.
-	 */
-	const char *confname;
-
-	/**
-	 * ctrl_interface - Control interface parameter
-	 *
-	 * If a configuration file is not used, this variable can be used to
-	 * set the ctrl_interface parameter that would have otherwise been read
-	 * from the configuration file. If both confname and ctrl_interface are
-	 * set, ctrl_interface is used to override the value from configuration
-	 * file.
-	 */
-	const char *ctrl_interface;
-
-	/**
-	 * driver - Driver interface name, or %NULL to use the default driver
-	 */
-	const char *driver;
-
-	/**
-	 * driver_param - Driver interface parameters
-	 *
-	 * If a configuration file is not used, this variable can be used to
-	 * set the driver_param parameters that would have otherwise been read
-	 * from the configuration file. If both confname and driver_param are
-	 * set, driver_param is used to override the value from configuration
-	 * file.
-	 */
-	const char *driver_param;
-
-	/**
-	 * ifname - Interface name
-	 */
-	const char *ifname;
-
-	/**
-	 * bridge_ifname - Optional bridge interface name
-	 *
-	 * If the driver interface (ifname) is included in a Linux bridge
-	 * device, the bridge interface may need to be used for receiving EAPOL
-	 * frames. This can be enabled by setting this variable to enable
-	 * receiving of EAPOL frames from an additional interface.
-	 */
-	const char *bridge_ifname;
-};
-
-/**
- * struct wpa_params - Parameters for wpa_supplicant_init()
- */
-struct wpa_params {
-	/**
-	 * daemonize - Run %wpa_supplicant in the background
-	 */
-	int daemonize;
-
-	/**
-	 * wait_for_monitor - Wait for a monitor program before starting
-	 */
-	int wait_for_monitor;
-
-	/**
-	 * pid_file - Path to a PID (process ID) file
-	 *
-	 * If this and daemonize are set, process ID of the background process
-	 * will be written to the specified file.
-	 */
-	char *pid_file;
-
-	/**
-	 * wpa_debug_level - Debugging verbosity level (e.g., MSG_INFO)
-	 */
-	int wpa_debug_level;
-
-	/**
-	 * wpa_debug_show_keys - Whether keying material is included in debug
-	 *
-	 * This parameter can be used to allow keying material to be included
-	 * in debug messages. This is a security risk and this option should
-	 * not be enabled in normal configuration. If needed during
-	 * development or while troubleshooting, this option can provide more
-	 * details for figuring out what is happening.
-	 */
-	int wpa_debug_show_keys;
-
-	/**
-	 * wpa_debug_timestamp - Whether to include timestamp in debug messages
-	 */
-	int wpa_debug_timestamp;
-
-	/**
-	 * ctrl_interface - Global ctrl_iface path/parameter
-	 */
-	char *ctrl_interface;
-
-	/**
-	 * dbus_ctrl_interface - Enable the DBus control interface
-	 */
-	int dbus_ctrl_interface;
-
-	/**
-	 * wpa_debug_file_path - Path of debug file or %NULL to use stdout
-	 */
-	const char *wpa_debug_file_path;
-
-	/**
-	 * wpa_debug_syslog - Enable log output through syslog
-	 */
-	int wpa_debug_syslog;
-
-	/**
-	 * override_driver - Optional driver parameter override
-	 *
-	 * This parameter can be used to override the driver parameter in
-	 * dynamic interface addition to force a specific driver wrapper to be
-	 * used instead.
-	 */
-	char *override_driver;
-
-	/**
-	 * override_ctrl_interface - Optional ctrl_interface override
-	 *
-	 * This parameter can be used to override the ctrl_interface parameter
-	 * in dynamic interface addition to force a control interface to be
-	 * created.
-	 */
-	char *override_ctrl_interface;
-};
-
 struct p2p_srv_bonjour {
 	struct dl_list list;
 	struct wpabuf *query;
@@ -200,22 +62,6 @@ struct p2p_srv_upnp {
  * This structure is initialized by calling wpa_supplicant_init() when starting
  * %wpa_supplicant.
  */
-struct wpa_global {
-	struct wpa_supplicant *ifaces;
-	struct wpa_params params;
-	struct ctrl_iface_global_priv *ctrl_iface;
-	struct wpas_dbus_priv *dbus;
-	void **drv_priv;
-	size_t drv_count;
-	struct os_time suspend_time;
-	struct p2p_data *p2p;
-	struct wpa_supplicant *p2p_group_formation;
-	u8 p2p_dev_addr[ETH_ALEN];
-	struct dl_list p2p_srv_bonjour; /* struct p2p_srv_bonjour */
-	struct dl_list p2p_srv_upnp; /* struct p2p_srv_upnp */
-	int p2p_disabled;
-	int cross_connection;
-};
 
 
 struct wpa_client_mlme {
@@ -321,7 +167,6 @@ struct wpa_client_mlme {
  * core functions.
  */
 struct wpa_supplicant {
-	struct wpa_global *global;
 	struct wpa_supplicant *parent;
 	struct wpa_supplicant *next;
 	struct l2_packet_data *l2;
@@ -565,25 +410,19 @@ void wpa_supplicant_select_network(struct wpa_supplicant *wpa_s,
 				   struct wpa_ssid *ssid);
 int wpa_supplicant_set_ap_scan(struct wpa_supplicant *wpa_s,
 			       int ap_scan);
-int wpa_supplicant_set_debug_params(struct wpa_global *global,
+int wpa_supplicant_set_debug_params(struct wpa_supplicant *wpa_s,
 				    int debug_level, int debug_timestamp,
 				    int debug_show_keys);
 
 void wpa_show_license(void);
 
-struct wpa_supplicant * wpa_supplicant_add_iface(struct wpa_global *global,
-						 struct wpa_interface *iface);
-int wpa_supplicant_remove_iface(struct wpa_global *global,
-				struct wpa_supplicant *wpa_s);
-struct wpa_supplicant * wpa_supplicant_get_iface(struct wpa_global *global,
-						 const char *ifname);
-struct wpa_global * wpa_supplicant_init(struct wpa_params *params);
-int wpa_supplicant_run(struct wpa_global *global);
-void wpa_supplicant_deinit(struct wpa_global *global);
+struct wpa_supplicant *wpa_supplicant_init(void);
+int wpa_supplicant_run(struct wpa_supplicant *wpa_s);
+void wpa_supplicant_deinit(struct wpa_supplicant *wpa_s);
 
 int wpa_supplicant_scard_init(struct wpa_supplicant *wpa_s,
 			      struct wpa_ssid *ssid);
-void wpa_supplicant_terminate_proc(struct wpa_global *global);
+
 void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 			     const u8 *buf, size_t len);
 enum wpa_key_mgmt key_mgmt2driver(int key_mgmt);
