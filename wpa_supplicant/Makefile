@@ -40,7 +40,7 @@ install: all
 	$(MAKE) -C ../src install
 
 #OBJS = config.o
-OBJS += notify.o
+OBJS += notify_none.o
 OBJS += bss.o
 #OBJS += eap_register.o
 OBJS += ../src/utils/common.o
@@ -1429,7 +1429,6 @@ tests: test-eap_sim_common
 
 clean:
 	$(MAKE) -C ../src clean
-	$(MAKE) -C dbus clean
 	rm -f core *~ *.o *.d eap_*.so $(ALL) $(WINALL) eapol_test preauth_test
 	rm -f wpa_priv
 
