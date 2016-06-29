@@ -257,7 +257,7 @@ CONFIG_NO_WPA_MSG=y
 #	path is given on command line, not here; this option is just used to
 #	select the backend that allows configuration files to be used)
 # winreg = Windows registry (see win_example.reg for an example)
-CONFIG_BACKEND=none
+#CONFIG_BACKEND=none
 
 # Remove configuration write functionality (i.e., to allow the configuration
 # file to be updated based on runtime configuration changes). The runtime
@@ -311,6 +311,9 @@ CONFIG_L2_PACKET=none
 # internal = Internal TLSv1 implementation (experimental)
 # none = Empty template
 CONFIG_TLS=none
+CONFIG_INTERNAL_AES=y
+CONFIG_INTERNAL_SHA1=y
+CONFIG_INTERNAL_MD5=y
 
 # Whether to enable TLS/IA support, which is required for EAP-TTLSv1.
 # You need CONFIG_TLS=gnutls for this to have any effect. Please note that

@@ -600,100 +600,6 @@ void wpa_supplicant_clear_status(struct wpa_supplicant *wpa_s)
 }
 
 
-/**
- * wpa_supplicant_reload_configuration - Reload configuration data
- * @wpa_s: Pointer to wpa_supplicant data
- * Returns: 0 on success or -1 if configuration parsing failed
- *
- * This function can be used to request that the configuration data is reloaded
- * (e.g., after configuration file change). This function is reloading
- * configuration only for one interface, so this may need to be called multiple
- * times if %wpa_supplicant is controlling multiple interfaces and all
- * interfaces need reconfiguration.
- */
-int wpa_supplicant_reload_configuration(struct wpa_supplicant *wpa_s)
-{
-	struct wpa_config *conf;
-	struct wpa_ssid *old_ssid;
-	int reconf_ctrl;
-	int old_ap_scan;
-
-	if (wpa_s->confname == NULL)
-		return -1;
-	conf = wpa_config_read(wpa_s->confname);
-	if (conf == NULL) {
-		wpa_msg(wpa_s, MSG_ERROR, "Failed to parse the configuration "
-			"file '%s' - exiting", wpa_s->confname);
-		return -1;
-	}
-	conf->changed_parameters = (unsigned int) -1;
-
-	reconf_ctrl = !!conf->ctrl_interface != !!wpa_s->conf->ctrl_interface
-		|| (conf->ctrl_interface && wpa_s->conf->ctrl_interface &&
-		    os_strcmp(conf->ctrl_interface,
-			      wpa_s->conf->ctrl_interface) != 0);
-
-	if (reconf_ctrl && wpa_s->ctrl_iface) {
-		wpa_supplicant_ctrl_iface_deinit(wpa_s->ctrl_iface);
-		wpa_s->ctrl_iface = NULL;
-	}
-
-	eapol_sm_invalidate_cached_session(wpa_s->eapol);
-	old_ssid = wpa_s->current_ssid;
-	wpa_s->current_ssid = NULL;
-	if (old_ssid != wpa_s->current_ssid)
-		wpas_notify_network_changed(wpa_s);
-
-	/*
-	 * TODO: should notify EAPOL SM about changes in opensc_engine_path,
-	 * pkcs11_engine_path, pkcs11_module_path.
-	 */
-	if (wpa_key_mgmt_wpa_psk(wpa_s->key_mgmt)) {
-		/*
-		 * Clear forced success to clear EAP state for next
-		 * authentication.
-		 */
-		eapol_sm_notify_eap_success(wpa_s->eapol, FALSE);
-	}
-	eapol_sm_notify_config(wpa_s->eapol, NULL, NULL);
-	wpa_sm_set_config(wpa_s->wpa, NULL);
-	wpa_sm_set_fast_reauth(wpa_s->wpa, wpa_s->conf->fast_reauth);
-	rsn_preauth_deinit(wpa_s->wpa);
-
-	old_ap_scan = wpa_s->conf->ap_scan;
-	/*wpa_config_free(wpa_s->conf);*/
-	wpa_s->conf = conf;
-	if (old_ap_scan != wpa_s->conf->ap_scan)
-		wpas_notify_ap_scan_changed(wpa_s);
-
-	if (reconf_ctrl)
-		wpa_s->ctrl_iface = wpa_supplicant_ctrl_iface_init(wpa_s);
-
-	wpa_supplicant_update_config(wpa_s);
-
-	wpa_supplicant_clear_status(wpa_s);
-	if (wpa_supplicant_enabled_networks(wpa_s->conf)) {
-		wpa_s->reassociate = 1;
-		wpa_supplicant_req_scan(wpa_s, 0, 0);
-	}
-	wpa_msg(wpa_s, MSG_DEBUG, "Reconfiguration completed");
-	return 0;
-}
-
-
-static void wpa_supplicant_reconfig(int sig, void *signal_ctx)
-{
-	struct wpa_global *global = signal_ctx;
-	struct wpa_supplicant *wpa_s;
-	wpa_printf(MSG_DEBUG, "Signal %d received - reconfiguring", sig);
-	for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next) {
-		if (wpa_supplicant_reload_configuration(wpa_s) < 0) {
-			wpa_supplicant_terminate_proc(global);
-		}
-	}
-}
-
-
 enum wpa_cipher cipher_suite2driver(int cipher)
 {
 	switch (cipher) {
@@ -1306,7 +1212,7 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		if (assoc_failed) {
 			/* give IBSS a bit more time */
 			timeout = ssid->mode == WPAS_MODE_IBSS ? 10 : 5;
-		} else if (wpa_s->conf->ap_scan == 1) {
+		} else if (wpa_s->conf && wpa_s->conf->ap_scan == 1) {
 			/* give IBSS a bit more time */
 			timeout = ssid->mode == WPAS_MODE_IBSS ? 20 : 10;
 		}
@@ -1905,6 +1811,7 @@ static struct wpa_supplicant * wpa_supplicant_alloc(void)
 }
 
 
+#define STA_COUNTRY_CODE	"00\0"
 static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s,
 				     struct wpa_interface *iface)
 {
@@ -1917,51 +1824,6 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s,
 		   iface->driver ? iface->driver : "default",
 		   iface->ctrl_interface ? iface->ctrl_interface : "N/A",
 		   iface->bridge_ifname ? iface->bridge_ifname : "N/A");
-
-	if (iface->confname) {
-#ifdef CONFIG_BACKEND_FILE
-		wpa_s->confname = os_rel2abs_path(iface->confname);
-		if (wpa_s->confname == NULL) {
-			wpa_printf(MSG_ERROR, "Failed to get absolute path "
-				   "for configuration file '%s'.",
-				   iface->confname);
-			return -1;
-		}
-		wpa_printf(MSG_DEBUG, "Configuration file '%s' -> '%s'",
-			   iface->confname, wpa_s->confname);
-#else /* CONFIG_BACKEND_FILE */
-		wpa_s->confname = os_strdup(iface->confname);
-#endif /* CONFIG_BACKEND_FILE */
-		wpa_s->conf = wpa_config_read(wpa_s->confname);
-		if (wpa_s->conf == NULL) {
-			wpa_printf(MSG_ERROR, "Failed to read or parse "
-				   "configuration '%s'.", wpa_s->confname);
-			return -1;
-		}
-
-		/*
-		 * Override ctrl_interface and driver_param if set on command
-		 * line.
-		 */
-		if (iface->ctrl_interface) {
-			os_free(wpa_s->conf->ctrl_interface);
-			wpa_s->conf->ctrl_interface =
-				os_strdup(iface->ctrl_interface);
-		}
-
-		if (iface->driver_param) {
-			os_free(wpa_s->conf->driver_param);
-			wpa_s->conf->driver_param =
-				os_strdup(iface->driver_param);
-		}
-	} else
-		/*wpa_s->conf = wpa_config_alloc_empty(iface->ctrl_interface,
-						     iface->driver_param);*/
-
-	if (wpa_s->conf == NULL) {
-		wpa_printf(MSG_ERROR, "\nNo configuration found.");
-		return -1;
-	}
 
 	if (iface->ifname == NULL) {
 		wpa_printf(MSG_ERROR, "\nInterface name is required.");
@@ -2011,11 +1873,6 @@ next_driver:
 		wpa_printf(MSG_ERROR, "Failed to initialize driver interface");
 		return -1;
 	}
-	if (wpa_drv_set_param(wpa_s, wpa_s->conf->driver_param) < 0) {
-		wpa_printf(MSG_ERROR, "Driver interface rejected "
-			   "driver_param '%s'", wpa_s->conf->driver_param);
-		return -1;
-	}
 
 	ifname = wpa_drv_get_ifname(wpa_s);
 	if (ifname && os_strcmp(ifname, wpa_s->ifname) != 0) {
@@ -2030,31 +1887,6 @@ next_driver:
 	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname,
 			  wpa_s->bridge_ifname[0] ? wpa_s->bridge_ifname :
 			  NULL);
-	wpa_sm_set_fast_reauth(wpa_s->wpa, wpa_s->conf->fast_reauth);
-
-	if (wpa_s->conf->dot11RSNAConfigPMKLifetime &&
-	    wpa_sm_set_param(wpa_s->wpa, RSNA_PMK_LIFETIME,
-			     wpa_s->conf->dot11RSNAConfigPMKLifetime)) {
-		wpa_printf(MSG_ERROR, "Invalid WPA parameter value for "
-			   "dot11RSNAConfigPMKLifetime");
-		return -1;
-	}
-
-	if (wpa_s->conf->dot11RSNAConfigPMKReauthThreshold &&
-	    wpa_sm_set_param(wpa_s->wpa, RSNA_PMK_REAUTH_THRESHOLD,
-			     wpa_s->conf->dot11RSNAConfigPMKReauthThreshold)) {
-		wpa_printf(MSG_ERROR, "Invalid WPA parameter value for "
-			"dot11RSNAConfigPMKReauthThreshold");
-		return -1;
-	}
-
-	if (wpa_s->conf->dot11RSNAConfigSATimeout &&
-	    wpa_sm_set_param(wpa_s->wpa, RSNA_SA_TIMEOUT,
-			     wpa_s->conf->dot11RSNAConfigSATimeout)) {
-		wpa_printf(MSG_ERROR, "Invalid WPA parameter value for "
-			   "dot11RSNAConfigSATimeout");
-		return -1;
-	}
 
 	if (wpa_drv_get_capa(wpa_s, &capa) == 0) {
 		wpa_s->drv_flags = capa.flags;
@@ -2068,6 +1900,8 @@ next_driver:
 	if (wpa_supplicant_driver_init(wpa_s) < 0)
 		return -1;
 
+	os_strncpy(wpa_s->conf->country, STA_COUNTRY_CODE,
+		   os_strlen(STA_COUNTRY_CODE));
 	if (wpa_s->conf->country[0] && wpa_s->conf->country[1] &&
 	    wpa_drv_set_country(wpa_s, wpa_s->conf->country)) {
 		wpa_printf(MSG_DEBUG, "Failed to set country");
@@ -2385,7 +2219,6 @@ int wpa_supplicant_run(struct wpa_global *global)
 	}
 
 	eloop_register_signal_terminate(wpa_supplicant_terminate, global);
-	eloop_register_signal_reconfig(wpa_supplicant_reconfig, global);
 
 	eloop_run();
 
