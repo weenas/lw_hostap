@@ -951,7 +951,7 @@ endif
 endif
 
 ifndef TLS_FUNCS
-OBJS += ../src/crypto/tls_none.o
+#OBJS += ../src/crypto/tls_none.o
 ifeq ($(CONFIG_TLS), internal)
 CONFIG_INTERNAL_AES=y
 CONFIG_INTERNAL_SHA1=y
