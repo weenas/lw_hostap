@@ -37,7 +37,7 @@ typedef enum { FALSE = 0, TRUE = 1 } Boolean;
 #define WPA_KEY_MGMT_PSK BIT(1)
 #define WPA_KEY_MGMT_NONE BIT(2)
 #define WPA_KEY_MGMT_IEEE8021X_NO_WPA BIT(3)
-#define WPA_KEY_MGMT_WPA_NONE BIT(4)
+#define WPA_KEY_MGMT_WPA_NONE BIT(4)  /* only for iBSS */
 #define WPA_KEY_MGMT_FT_IEEE8021X BIT(5)
 #define WPA_KEY_MGMT_FT_PSK BIT(6)
 #define WPA_KEY_MGMT_IEEE8021X_SHA256 BIT(7)

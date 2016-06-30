@@ -28,13 +28,11 @@
 #include "l2_packet/l2_packet.h"
 #include "wpa_supplicant_i.h"
 #include "driver_i.h"
-#include "ctrl_iface.h"
 #include "common/version.h"
 #include "rsn_supp/preauth.h"
 #include "rsn_supp/pmksa_cache.h"
 #include "common/wpa_ctrl.h"
 #include "common/ieee802_11_defs.h"
-#include "p2p/p2p.h"
 #include "blacklist.h"
 #include "wpas_glue.h"
 #include "wps_supplicant.h"
@@ -135,55 +133,6 @@ int wpa_set_wep_keys(struct wpa_supplicant *wpa_s, struct wpa_ssid *ssid)
 }
 
 
-static int wpa_supplicant_set_wpa_none_key(struct wpa_supplicant *wpa_s,
-					   struct wpa_ssid *ssid)
-{
-	u8 key[32];
-	size_t keylen;
-	enum wpa_alg alg;
-	u8 seq[6] = { 0 };
-
-	/* IBSS/WPA-None uses only one key (Group) for both receiving and
-	 * sending unicast and multicast packets. */
-
-	if (ssid->mode != WPAS_MODE_IBSS) {
-		wpa_printf(MSG_INFO, "WPA: Invalid mode %d (not IBSS/ad-hoc) "
-			   "for WPA-None", ssid->mode);
-		return -1;
-	}
-
-	if (!ssid->psk_set) {
-		wpa_printf(MSG_INFO, "WPA: No PSK configured for WPA-None");
-		return -1;
-	}
-
-	switch (wpa_s->group_cipher) {
-	case WPA_CIPHER_CCMP:
-		os_memcpy(key, ssid->psk, 16);
-		keylen = 16;
-		alg = WPA_ALG_CCMP;
-		break;
-	case WPA_CIPHER_TKIP:
-		/* WPA-None uses the same Michael MIC key for both TX and RX */
-		os_memcpy(key, ssid->psk, 16 + 8);
-		os_memcpy(key + 16 + 8, ssid->psk + 16, 8);
-		keylen = 32;
-		alg = WPA_ALG_TKIP;
-		break;
-	default:
-		wpa_printf(MSG_INFO, "WPA: Invalid group cipher %d for "
-			   "WPA-None", wpa_s->group_cipher);
-		return -1;
-	}
-
-	/* TODO: should actually remember the previously used seq#, both for TX
-	 * and RX from each STA.. */
-
-	return wpa_drv_set_key(wpa_s, alg, (u8 *) "\xff\xff\xff\xff\xff\xff",
-			       0, 1, seq, 6, key, keylen);
-}
-
-
 static void wpa_supplicant_timeout(void *eloop_ctx, void *timeout_ctx)
 {
 	struct wpa_supplicant *wpa_s = eloop_ctx;
@@ -251,21 +200,6 @@ void wpa_supplicant_initiate_eapol(struct wpa_supplicant *wpa_s)
 #ifdef IEEE8021X_EAPOL
 	struct eapol_config eapol_conf;
 	struct wpa_ssid *ssid = wpa_s->current_ssid;
-
-#ifdef CONFIG_IBSS_RSN
-	if (ssid->mode == WPAS_MODE_IBSS &&
-	    wpa_s->key_mgmt != WPA_KEY_MGMT_NONE &&
-	    wpa_s->key_mgmt != WPA_KEY_MGMT_WPA_NONE) {
-		/*
-		 * RSN IBSS authentication is per-STA and we can disable the
-		 * per-BSSID EAPOL authentication.
-		 */
-		eapol_sm_notify_portControl(wpa_s->eapol, ForceAuthorized);
-		eapol_sm_notify_eap_success(wpa_s->eapol, TRUE);
-		eapol_sm_notify_eap_fail(wpa_s->eapol, FALSE);
-		return;
-	}
-#endif /* CONFIG_IBSS_RSN */
 
 	eapol_sm_notify_eap_success(wpa_s->eapol, FALSE);
 	eapol_sm_notify_eap_fail(wpa_s->eapol, FALSE);
@@ -404,13 +338,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 	wpa_s->sme.ft_ies_len = 0;
 #endif /* CONFIG_SME */
 
-#ifdef CONFIG_AP
-	wpa_supplicant_ap_deinit(wpa_s);
-#endif /* CONFIG_AP */
-
-#ifdef CONFIG_P2P
-	wpas_p2p_deinit(wpa_s);
-#endif /* CONFIG_P2P */
 }
 
 
@@ -529,9 +456,6 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
 		wpa_s->reassociated_connection = 1;
 		wpa_drv_set_operstate(wpa_s, 1);
 		wpa_s->after_wps = 0;
-#ifdef CONFIG_P2P
-		wpas_p2p_completed(wpa_s);
-#endif /* CONFIG_P2P */
 	} else if (state == WPA_DISCONNECTED || state == WPA_ASSOCIATING ||
 		   state == WPA_ASSOCIATED) {
 		wpa_s->new_connection = 1;
@@ -895,23 +819,6 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	int assoc_failed = 0;
 	struct wpa_ssid *old_ssid;
 
-	if (ssid->mode == WPAS_MODE_AP || ssid->mode == WPAS_MODE_P2P_GO ||
-	    ssid->mode == WPAS_MODE_P2P_GROUP_FORMATION) {
-#ifdef CONFIG_AP
-		if (!(wpa_s->drv_flags & WPA_DRIVER_FLAGS_AP)) {
-			wpa_printf(MSG_INFO, "Driver does not support AP "
-				   "mode");
-			return;
-		}
-		wpa_supplicant_create_ap(wpa_s, ssid);
-		wpa_s->current_bss = bss;
-#else /* CONFIG_AP */
-		wpa_printf(MSG_ERROR, "AP mode support not included in the "
-			   "build");
-#endif /* CONFIG_AP */
-		return;
-	}
-
 	os_memset(&params, 0, sizeof(params));
 	wpa_s->reassociate = 0;
 	if (bss) {
@@ -1030,35 +937,6 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		wpa_ie_len = 0;
 	}
 
-#ifdef CONFIG_P2P
-	if (wpa_s->global->p2p) {
-		u8 *pos;
-		size_t len;
-		int res;
-		int p2p_group;
-		p2p_group = wpa_s->drv_flags & WPA_DRIVER_FLAGS_P2P_CAPABLE;
-		pos = wpa_ie + wpa_ie_len;
-		len = sizeof(wpa_ie) - wpa_ie_len;
-		res = wpas_p2p_assoc_req_ie(wpa_s, bss, pos, len, p2p_group);
-		if (res >= 0)
-			wpa_ie_len += res;
-	}
-
-	wpa_s->cross_connect_disallowed = 0;
-	if (bss) {
-		struct wpabuf *p2p;
-		p2p = wpa_bss_get_vendor_ie_multi(bss, P2P_IE_VENDOR_TYPE);
-		if (p2p) {
-			wpa_s->cross_connect_disallowed =
-				p2p_get_cross_connect_disallowed(p2p);
-			wpabuf_free(p2p);
-			wpa_printf(MSG_DEBUG, "P2P: WLAN AP %s cross "
-				   "connection",
-				   wpa_s->cross_connect_disallowed ?
-				   "disallows" : "allows");
-		}
-	}
-#endif /* CONFIG_P2P */
 
 	wpa_clear_keys(wpa_s, bss ? bss->bssid : NULL);
 	use_crypt = 1;
@@ -1092,11 +970,6 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	}
 #endif /* IEEE8021X_EAPOL */
 
-	if (wpa_s->key_mgmt == WPA_KEY_MGMT_WPA_NONE) {
-		/* Set the key before (and later after) association */
-		wpa_supplicant_set_wpa_none_key(wpa_s, ssid);
-	}
-
 	wpa_supplicant_set_state(wpa_s, WPA_ASSOCIATING);
 	if (bss) {
 		params.bssid = bss->bssid;
@@ -1107,16 +980,12 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		params.ssid = ssid->ssid;
 		params.ssid_len = ssid->ssid_len;
 	}
-	if (ssid->mode == WPAS_MODE_IBSS && ssid->frequency > 0 &&
-	    params.freq == 0)
-		params.freq = ssid->frequency; /* Initial channel for IBSS */
 	params.wpa_ie = wpa_ie;
 	params.wpa_ie_len = wpa_ie_len;
 	params.pairwise_suite = cipher_pairwise;
 	params.group_suite = cipher_group;
 	params.key_mgmt_suite = key_mgmt2driver(wpa_s->key_mgmt);
 	params.auth_alg = algs;
-	params.mode = ssid->mode;
 	for (i = 0; i < NUM_WEP_KEYS; i++) {
 		if (ssid->wep_key_len[i])
 			params.wep_key[i] = ssid->wep_key[i];
@@ -1150,11 +1019,6 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	}
 #endif /* CONFIG_IEEE80211W */
 
-#ifdef CONFIG_P2P
-	if (wpa_s->global->p2p &&
-	    (wpa_s->drv_flags & WPA_DRIVER_FLAGS_P2P_CAPABLE))
-		params.p2p = 1;
-#endif /* CONFIG_P2P */
 
 	params.uapsd = -1;
 
@@ -1170,32 +1034,21 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	if (wpa_s->key_mgmt == WPA_KEY_MGMT_WPA_NONE) {
 		/* Set the key after the association just in case association
 		 * cleared the previously configured key. */
-		wpa_supplicant_set_wpa_none_key(wpa_s, ssid);
+	
 		/* No need to timeout authentication since there is no key
 		 * management. */
 		wpa_supplicant_cancel_auth_timeout(wpa_s);
 		wpa_supplicant_set_state(wpa_s, WPA_COMPLETED);
-#ifdef CONFIG_IBSS_RSN
-	} else if (ssid->mode == WPAS_MODE_IBSS &&
-		   wpa_s->key_mgmt != WPA_KEY_MGMT_NONE &&
-		   wpa_s->key_mgmt != WPA_KEY_MGMT_WPA_NONE) {
-		ibss_rsn_set_psk(wpa_s->ibss_rsn, ssid->psk);
-		/*
-		 * RSN IBSS authentication is per-STA and we can disable the
-		 * per-BSSID authentication.
-		 */
-		wpa_supplicant_cancel_auth_timeout(wpa_s);
-#endif /* CONFIG_IBSS_RSN */
 	} else {
 		/* Timeout for IEEE 802.11 authentication and association */
 		int timeout = 60;
 
 		if (assoc_failed) {
 			/* give IBSS a bit more time */
-			timeout = ssid->mode == WPAS_MODE_IBSS ? 10 : 5;
+			timeout =  5;
 		} else if (wpa_s->conf && wpa_s->conf->ap_scan == 1) {
 			/* give IBSS a bit more time */
-			timeout = ssid->mode == WPAS_MODE_IBSS ? 20 : 10;
+			timeout = 10;
 		}
 		wpa_supplicant_req_auth_timeout(wpa_s, timeout, 0);
 	}
@@ -1625,12 +1478,6 @@ void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 		return;
 	}
 
-#ifdef CONFIG_AP
-	if (wpa_s->ap_iface) {
-		wpa_supplicant_ap_rx_eapol(wpa_s, src_addr, buf, len);
-		return;
-	}
-#endif /* CONFIG_AP */
 
 	if (wpa_s->key_mgmt == WPA_KEY_MGMT_NONE) {
 		wpa_printf(MSG_DEBUG, "Ignored received EAPOL frame since "
@@ -1641,9 +1488,7 @@ void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 	if (wpa_s->eapol_received == 0 &&
 	    (!(wpa_s->drv_flags & WPA_DRIVER_FLAGS_4WAY_HANDSHAKE) ||
 	     !wpa_key_mgmt_wpa_psk(wpa_s->key_mgmt) ||
-	     wpa_s->wpa_state != WPA_COMPLETED) &&
-	    (wpa_s->current_ssid == NULL ||
-	     wpa_s->current_ssid->mode != IEEE80211_MODE_IBSS)) {
+	     wpa_s->wpa_state != WPA_COMPLETED) ) {
 		/* Timeout for completing IEEE 802.1X and WPA authentication */
 		wpa_supplicant_req_auth_timeout(
 			wpa_s,
@@ -1660,13 +1505,6 @@ void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 		return;
 	}
 
-#ifdef CONFIG_IBSS_RSN
-	if (wpa_s->current_ssid &&
-	    wpa_s->current_ssid->mode == WPAS_MODE_IBSS) {
-		ibss_rsn_rx_eapol(wpa_s->ibss_rsn, src_addr, buf, len);
-		return;
-	}
-#endif /* CONFIG_IBSS_RSN */
 
 	/* Source address of the incoming EAPOL frame could be compared to the
 	 * current BSSID. However, it is possible that a centralized
@@ -1752,27 +1590,6 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 	return 0;
 }
 
-
-static int wpa_supplicant_daemon(const char *pid_file)
-{
-	wpa_printf(MSG_DEBUG, "Daemonize..");
-	return os_daemonize(pid_file);
-}
-
-
-static struct wpa_supplicant * wpa_supplicant_alloc(void)
-{
-	struct wpa_supplicant *wpa_s;
-
-	wpa_s = os_zalloc(sizeof(*wpa_s));
-	if (wpa_s == NULL)
-		return NULL;
-	wpa_s->scan_req = 1;
-	wpa_s->new_connection = 1;
-	return wpa_s;
-}
-
-
 #define STA_COUNTRY_CODE	"00\0"
 static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s)
 				   
@@ -1849,21 +1666,6 @@ next_driver:
 		return -1;
 	wpa_sm_set_eapol(wpa_s->wpa, wpa_s->eapol);
 
-
-#ifdef CONFIG_IBSS_RSN
-	wpa_s->ibss_rsn = ibss_rsn_init(wpa_s);
-	if (!wpa_s->ibss_rsn) {
-		wpa_printf(MSG_DEBUG, "Failed to init IBSS RSN");
-		return -1;
-	}
-#endif /* CONFIG_IBSS_RSN */
-
-#ifdef CONFIG_P2P
-	if (wpas_p2p_init(wpa_s->global, wpa_s) < 0) {
-		wpa_printf(MSG_ERROR, "Failed to init P2P");
-		return -1;
-	}
-#endif /* CONFIG_P2P */
 
 	if (wpa_bss_init(wpa_s) < 0)
 		return -1;
@@ -1965,10 +1767,6 @@ void wpa_supplicant_update_config(struct wpa_supplicant *wpa_s)
 #ifdef CONFIG_WPS
 	wpas_wps_update_config(wpa_s);
 #endif /* CONFIG_WPS */
-
-#ifdef CONFIG_P2P
-	wpas_p2p_update_config(wpa_s);
-#endif /* CONFIG_P2P */
 
 	wpa_s->conf->changed_parameters = 0;
 }

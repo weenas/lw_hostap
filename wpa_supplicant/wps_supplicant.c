@@ -761,12 +761,6 @@ int wpas_wps_start_pin(struct wpa_supplicant *wpa_s, const u8 *bssid,
 /* Cancel the wps pbc/pin requests */
 int wpas_wps_cancel(struct wpa_supplicant *wpa_s)
 {
-#ifdef CONFIG_AP
-	if (wpa_s->ap_iface) {
-		wpa_printf(MSG_DEBUG, "WPS: Cancelling in AP mode");
-		return wpa_supplicant_ap_wps_cancel(wpa_s);
-	}
-#endif /* CONFIG_AP */
 
 	if (wpa_s->wpa_state == WPA_SCANNING) {
 		wpa_printf(MSG_DEBUG, "WPS: Cancel operation - cancel scan");
