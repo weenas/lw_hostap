@@ -2219,7 +2219,6 @@ void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname,
 {
 	if (sm) {
 		sm->ifname = ifname;
-		sm->bridge_ifname = bridge_ifname;
 	}
 }
 
