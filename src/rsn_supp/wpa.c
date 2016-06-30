@@ -2148,7 +2148,6 @@ void wpa_sm_set_scard_ctx(struct wpa_sm *sm, void *scard_ctx)
 {
 	if (sm == NULL)
 		return;
-	sm->scard_ctx = scard_ctx;
 	if (sm->preauth_eapol)
 		eapol_sm_register_scard_ctx(sm->preauth_eapol, scard_ctx);
 }

@@ -351,41 +351,4 @@ void wpa_config_debug_dump_networks(struct wpa_config *config);
 #define wpa_config_debug_dump_networks(c) do { } while (0)
 #endif /* CONFIG_NO_STDOUT_DEBUG */
 
-
-/* Prototypes for common functions from config.c */
-int wpa_config_process_global(struct wpa_config *config, char *pos, int line);
-
-
-/* Prototypes for backend specific functions from the selected config_*.c */
-
-/**
- * wpa_config_read - Read and parse configuration database
- * @name: Name of the configuration (e.g., path and file name for the
- * configuration file)
- * Returns: Pointer to allocated configuration data or %NULL on failure
- *
- * This function reads configuration data, parses its contents, and allocates
- * data structures needed for storing configuration information. The allocated
- * data can be freed with wpa_config_free().
- *
- * Each configuration backend needs to implement this function.
- */
-struct wpa_config * wpa_config_read(const char *name);
-
-/**
- * wpa_config_write - Write or update configuration data
- * @name: Name of the configuration (e.g., path and file name for the
- * configuration file)
- * @config: Configuration data from wpa_config_read()
- * Returns: 0 on success, -1 on failure
- *
- * This function write all configuration data into an external database (e.g.,
- * a text file) in a format that can be read with wpa_config_read(). This can
- * be used to allow wpa_supplicant to update its configuration, e.g., when a
- * new network is added or a password is changed.
- *
- * Each configuration backend needs to implement this function.
- */
-int wpa_config_write(const char *name, struct wpa_config *config);
-
 #endif /* CONFIG_H */
