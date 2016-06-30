@@ -637,10 +637,6 @@ void wpa_supplicant_connect(struct wpa_supplicant *wpa_s,
 	     (wpa_s->wpa_state != WPA_ASSOCIATING ||
 	      os_memcmp(selected->bssid, wpa_s->pending_bssid, ETH_ALEN) !=
 	      0))) {
-		if (wpa_supplicant_scard_init(wpa_s, ssid)) {
-			wpa_supplicant_req_new_scan(wpa_s, 10, 0);
-			return;
-		}
 		wpa_supplicant_associate(wpa_s, selected, ssid);
 	} else {
 		wpa_printf(MSG_DEBUG, "Already associated with the selected "
@@ -1084,13 +1080,7 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 #endif /* CONFIG_SME */
 
 	wpa_msg(wpa_s, MSG_INFO, "Associated with " MACSTR, MAC2STR(bssid));
-	if (wpa_s->current_ssid) {
-		/* When using scanning (ap_scan=1), SIM PC/SC interface can be
-		 * initialized before association, but for other modes,
-		 * initialize PC/SC here, if the current configuration needs
-		 * smartcard or SIM/USIM. */
-		wpa_supplicant_scard_init(wpa_s, wpa_s->current_ssid);
-	}
+
 	wpa_sm_notify_assoc(wpa_s->wpa, bssid);
 	if (wpa_s->l2)
 		l2_packet_notify_auth_start(wpa_s->l2);

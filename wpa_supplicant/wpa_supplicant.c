@@ -358,9 +358,7 @@ void wpa_supplicant_set_non_wpa_policy(struct wpa_supplicant *wpa_s,
 
 static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 {
-	wpa_s->scard = NULL;
-	wpa_sm_set_scard_ctx(wpa_s->wpa, NULL);
-	eapol_sm_register_scard_ctx(wpa_s->eapol, NULL);
+
 	l2_packet_deinit(wpa_s->l2);
 	wpa_s->l2 = NULL;
 
@@ -373,8 +371,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 		wpa_s->conf = NULL;
 	}
 
-	os_free(wpa_s->confname);
-	wpa_s->confname = NULL;
 
 	wpa_sm_set_eapol(wpa_s->wpa, NULL);
 	eapol_sm_deinit(wpa_s->eapol);

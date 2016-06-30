@@ -77,7 +77,6 @@ struct wpa_supplicant {
 	char *dbus_new_path;
 #endif /* CONFIG_CTRL_IFACE_DBUS_NEW */
 
-	char *confname;
 	struct wpa_config *conf;
 	int countermeasures;
 	os_time_t last_michael_mic_error;
@@ -129,8 +128,6 @@ struct wpa_supplicant {
 	int eapol_received; /* number of EAPOL packets received after the
 			     * previous association event */
 
-	struct scard_data *scard;
-
 	unsigned char last_eapol_src[ETH_ALEN];
 
 	int keys_cleared;
@@ -158,8 +155,6 @@ struct wpa_supplicant {
 	struct wpabuf *pending_eapol_rx;
 	struct os_time pending_eapol_rx_time;
 	u8 pending_eapol_rx_src[ETH_ALEN];
-
-	struct ibss_rsn *ibss_rsn;
 
 	int set_sta_uapsd;
 	int sta_uapsd;
@@ -252,8 +247,6 @@ struct wpa_supplicant {
 	char cross_connect_uplink[100];
 #endif /* CONFIG_P2P */
 
-	struct wpa_ssid *bgscan_ssid;
-	const struct bgscan_ops *bgscan;
 	void *bgscan_priv;
 
 	int connect_without_scan;
@@ -267,8 +260,6 @@ struct wpa_supplicant {
 
 /* wpa_supplicant.c */
 int wpa_set_wep_keys(struct wpa_supplicant *wpa_s, struct wpa_ssid *ssid);
-
-int wpa_supplicant_reload_configuration(struct wpa_supplicant *wpa_s);
 
 const char * wpa_supplicant_state_txt(enum wpa_states state);
 int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s);
@@ -310,10 +301,6 @@ void wpa_show_license(void);
 struct wpa_supplicant *wpa_supplicant_init(void);
 int wpa_supplicant_run(struct wpa_supplicant *wpa_s);
 void wpa_supplicant_deinit(struct wpa_supplicant *wpa_s);
-
-int wpa_supplicant_scard_init(struct wpa_supplicant *wpa_s,
-			      struct wpa_ssid *ssid);
-
 void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 			     const u8 *buf, size_t len);
 enum wpa_key_mgmt key_mgmt2driver(int key_mgmt);

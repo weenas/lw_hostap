@@ -50,7 +50,6 @@ struct wpa_sm {
 
 	struct wpa_sm_ctx *ctx;
 
-	void *scard_ctx; /* context for smartcard callbacks */
 	int fast_reauth; /* whether EAP fast re-authentication is enabled */
 
 	void *network_ctx;
