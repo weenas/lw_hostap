@@ -363,15 +363,8 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 	eapol_sm_register_scard_ctx(wpa_s->eapol, NULL);
 	l2_packet_deinit(wpa_s->l2);
 	wpa_s->l2 = NULL;
-	if (wpa_s->l2_br) {
-		l2_packet_deinit(wpa_s->l2_br);
-		wpa_s->l2_br = NULL;
-	}
 
-	if (wpa_s->ctrl_iface) {
-		wpa_supplicant_ctrl_iface_deinit(wpa_s->ctrl_iface);
-		wpa_s->ctrl_iface = NULL;
-	}
+
 	if (wpa_s->conf != NULL) {
 		struct wpa_ssid *ssid;
 		for (ssid = wpa_s->conf->ssid; ssid; ssid = ssid->next)
@@ -1167,10 +1160,7 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		params.p2p = 1;
 #endif /* CONFIG_P2P */
 
-	if (wpa_s->parent->set_sta_uapsd)
-		params.uapsd = wpa_s->parent->sta_uapsd;
-	else
-		params.uapsd = -1;
+	params.uapsd = -1;
 
 	ret = wpa_drv_associate(wpa_s, &params);
 	if (ret < 0) {
@@ -1746,21 +1736,6 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 	wpa_printf(MSG_DEBUG, "Own MAC address: " MACSTR,
 		   MAC2STR(wpa_s->own_addr));
 
-	if (wpa_s->bridge_ifname[0]) {
-		wpa_printf(MSG_DEBUG, "Receiving packets from bridge interface"
-			   " '%s'", wpa_s->bridge_ifname);
-		wpa_s->l2_br = l2_packet_init(wpa_s->bridge_ifname,
-					      wpa_s->own_addr,
-					      ETH_P_EAPOL,
-					      wpa_supplicant_rx_eapol, wpa_s,
-					      0);
-		if (wpa_s->l2_br == NULL) {
-			wpa_printf(MSG_ERROR, "Failed to open l2_packet "
-				   "connection for the bridge interface '%s'",
-				   wpa_s->bridge_ifname);
-			return -1;
-		}
-	}
 
 	wpa_clear_keys(wpa_s, NULL);
 
@@ -1798,8 +1773,6 @@ static struct wpa_supplicant * wpa_supplicant_alloc(void)
 		return NULL;
 	wpa_s->scan_req = 1;
 	wpa_s->new_connection = 1;
-	wpa_s->parent = wpa_s;
-
 	return wpa_s;
 }
 
@@ -1848,9 +1821,8 @@ next_driver:
 	if (wpa_supplicant_init_wpa(wpa_s) < 0)
 		return -1;
 
-	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname,
-			  wpa_s->bridge_ifname[0] ? wpa_s->bridge_ifname :
-			  NULL);
+	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname, NULL);
+
 
 	if (wpa_drv_get_capa(wpa_s, &capa) == 0) {
 		wpa_s->drv_flags = capa.flags;
@@ -1881,19 +1853,6 @@ next_driver:
 		return -1;
 	wpa_sm_set_eapol(wpa_s->wpa, wpa_s->eapol);
 
-	wpa_s->ctrl_iface = wpa_supplicant_ctrl_iface_init(wpa_s);
-	if (wpa_s->ctrl_iface == NULL) {
-		wpa_printf(MSG_ERROR,
-			   "Failed to initialize control interface '%s'.\n"
-			   "You may have another wpa_supplicant process "
-			   "already running or the file was\n"
-			   "left by an unclean termination of wpa_supplicant "
-			   "in which case you will need\n"
-			   "to manually remove this file before starting "
-			   "wpa_supplicant again.\n",
-			   wpa_s->conf->ctrl_interface);
-		return -1;
-	}
 
 #ifdef CONFIG_IBSS_RSN
 	wpa_s->ibss_rsn = ibss_rsn_init(wpa_s);

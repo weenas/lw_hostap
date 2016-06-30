@@ -65,7 +65,6 @@ struct wpa_sm {
 
 	u8 own_addr[ETH_ALEN];
 	const char *ifname;
-	const char *bridge_ifname;
 	u8 bssid[ETH_ALEN];
 
 	unsigned int dot11RSNAConfigPMKLifetime;
