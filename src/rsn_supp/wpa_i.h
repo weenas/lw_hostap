@@ -50,7 +50,6 @@ struct wpa_sm {
 
 	struct wpa_sm_ctx *ctx;
 
-	void *scard_ctx; /* context for smartcard callbacks */
 	int fast_reauth; /* whether EAP fast re-authentication is enabled */
 
 	void *network_ctx;
@@ -65,7 +64,6 @@ struct wpa_sm {
 
 	u8 own_addr[ETH_ALEN];
 	const char *ifname;
-	const char *bridge_ifname;
 	u8 bssid[ETH_ALEN];
 
 	unsigned int dot11RSNAConfigPMKLifetime;

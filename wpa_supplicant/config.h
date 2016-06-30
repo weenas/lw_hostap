@@ -59,7 +59,7 @@ struct wpa_config {
 	/**
 	 * pssid - Per-priority network lists (in priority order)
 	 */
-	struct wpa_ssid **pssid;
+	struct wpa_ssid *pssid;
 
 	/**
 	 * num_prio - Number of different priorities used in the pssid lists
@@ -110,68 +110,6 @@ struct wpa_config {
 	 */
 	int ap_scan;
 
-	/**
-	 * ctrl_interface - Parameters for the control interface
-	 *
-	 * If this is specified, %wpa_supplicant will open a control interface
-	 * that is available for external programs to manage %wpa_supplicant.
-	 * The meaning of this string depends on which control interface
-	 * mechanism is used. For all cases, the existance of this parameter
-	 * in configuration is used to determine whether the control interface
-	 * is enabled.
-	 *
-	 * For UNIX domain sockets (default on Linux and BSD): This is a
-	 * directory that will be created for UNIX domain sockets for listening
-	 * to requests from external programs (CLI/GUI, etc.) for status
-	 * information and configuration. The socket file will be named based
-	 * on the interface name, so multiple %wpa_supplicant processes can be
-	 * run at the same time if more than one interface is used.
-	 * /var/run/wpa_supplicant is the recommended directory for sockets and
-	 * by default, wpa_cli will use it when trying to connect with
-	 * %wpa_supplicant.
-	 *
-	 * Access control for the control interface can be configured
-	 * by setting the directory to allow only members of a group
-	 * to use sockets. This way, it is possible to run
-	 * %wpa_supplicant as root (since it needs to change network
-	 * configuration and open raw sockets) and still allow GUI/CLI
-	 * components to be run as non-root users. However, since the
-	 * control interface can be used to change the network
-	 * configuration, this access needs to be protected in many
-	 * cases. By default, %wpa_supplicant is configured to use gid
-	 * 0 (root). If you want to allow non-root users to use the
-	 * control interface, add a new group and change this value to
-	 * match with that group. Add users that should have control
-	 * interface access to this group.
-	 *
-	 * When configuring both the directory and group, use following format:
-	 * DIR=/var/run/wpa_supplicant GROUP=wheel
-	 * DIR=/var/run/wpa_supplicant GROUP=0
-	 * (group can be either group name or gid)
-	 *
-	 * For UDP connections (default on Windows): The value will be ignored.
-	 * This variable is just used to select that the control interface is
-	 * to be created. The value can be set to, e.g., udp
-	 * (ctrl_interface=udp).
-	 *
-	 * For Windows Named Pipe: This value can be used to set the security
-	 * descriptor for controlling access to the control interface. Security
-	 * descriptor can be set using Security Descriptor String Format (see
-	 * http://msdn.microsoft.com/library/default.asp?url=/library/en-us/secauthz/security/security_descriptor_string_format.asp).
-	 * The descriptor string needs to be prefixed with SDDL=. For example,
-	 * ctrl_interface=SDDL=D: would set an empty DACL (which will reject
-	 * all connections).
-	 */
-	char *ctrl_interface;
-
-	/**
-	 * ctrl_interface_group - Control interface group (DEPRECATED)
-	 *
-	 * This variable is only used for backwards compatibility. Group for
-	 * UNIX domain sockets should now be specified using GROUP=group in
-	 * ctrl_interface variable.
-	 */
-	char *ctrl_interface_group;
 
 	/**
 	 * fast_reauth - EAP fast re-authentication (session resumption)
@@ -255,10 +193,6 @@ struct wpa_config {
 	 */
 	int update_config;
 
-	/**
-	 * blobs - Configuration blobs
-	 */
-	struct wpa_config_blob *blobs;
 
 	/**
 	 * uuid - Universally Unique IDentifier (UUID; see RFC 4122) for WPS
@@ -416,42 +350,5 @@ void wpa_config_debug_dump_networks(struct wpa_config *config);
 #else /* CONFIG_NO_STDOUT_DEBUG */
 #define wpa_config_debug_dump_networks(c) do { } while (0)
 #endif /* CONFIG_NO_STDOUT_DEBUG */
-
-
-/* Prototypes for common functions from config.c */
-int wpa_config_process_global(struct wpa_config *config, char *pos, int line);
-
-
-/* Prototypes for backend specific functions from the selected config_*.c */
-
-/**
- * wpa_config_read - Read and parse configuration database
- * @name: Name of the configuration (e.g., path and file name for the
- * configuration file)
- * Returns: Pointer to allocated configuration data or %NULL on failure
- *
- * This function reads configuration data, parses its contents, and allocates
- * data structures needed for storing configuration information. The allocated
- * data can be freed with wpa_config_free().
- *
- * Each configuration backend needs to implement this function.
- */
-struct wpa_config * wpa_config_read(const char *name);
-
-/**
- * wpa_config_write - Write or update configuration data
- * @name: Name of the configuration (e.g., path and file name for the
- * configuration file)
- * @config: Configuration data from wpa_config_read()
- * Returns: 0 on success, -1 on failure
- *
- * This function write all configuration data into an external database (e.g.,
- * a text file) in a format that can be read with wpa_config_read(). This can
- * be used to allow wpa_supplicant to update its configuration, e.g., when a
- * new network is added or a password is changed.
- *
- * Each configuration backend needs to implement this function.
- */
-int wpa_config_write(const char *name, struct wpa_config *config);
 
 #endif /* CONFIG_H */

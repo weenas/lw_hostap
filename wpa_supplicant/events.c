@@ -578,13 +578,10 @@ wpa_supplicant_pick_network(struct wpa_supplicant *wpa_s,
 	int prio;
 
 	while (selected == NULL) {
-		for (prio = 0; prio < wpa_s->conf->num_prio; prio++) {
-			selected = wpa_supplicant_select_bss(
-				wpa_s, scan_res, wpa_s->conf->pssid[prio],
-				selected_ssid);
-			if (selected)
-				break;
-		}
+		selected = wpa_supplicant_select_bss(
+			wpa_s, scan_res, wpa_s->conf->pssid, selected_ssid);
+		if (selected)
+			break;	
 
 		if (selected == NULL && wpa_s->blacklist) {
 			wpa_printf(MSG_DEBUG, "No APs found - clear blacklist "
@@ -640,10 +637,6 @@ void wpa_supplicant_connect(struct wpa_supplicant *wpa_s,
 	     (wpa_s->wpa_state != WPA_ASSOCIATING ||
 	      os_memcmp(selected->bssid, wpa_s->pending_bssid, ETH_ALEN) !=
 	      0))) {
-		if (wpa_supplicant_scard_init(wpa_s, ssid)) {
-			wpa_supplicant_req_new_scan(wpa_s, 10, 0);
-			return;
-		}
 		wpa_supplicant_associate(wpa_s, selected, ssid);
 	} else {
 		wpa_printf(MSG_DEBUG, "Already associated with the selected "
@@ -658,16 +651,15 @@ wpa_supplicant_pick_new_network(struct wpa_supplicant *wpa_s)
 	int prio;
 	struct wpa_ssid *ssid;
 
-	for (prio = 0; prio < wpa_s->conf->num_prio; prio++) {
-		for (ssid = wpa_s->conf->pssid[prio]; ssid; ssid = ssid->pnext)
-		{
-			if (ssid->disabled)
-				continue;
-			if (ssid->mode == IEEE80211_MODE_IBSS ||
-			    ssid->mode == IEEE80211_MODE_AP)
-				return ssid;
-		}
+	for (ssid = wpa_s->conf->pssid; ssid; ssid = ssid->pnext)
+	{
+		if (ssid->disabled)
+			continue;
+		if (ssid->mode == IEEE80211_MODE_IBSS ||
+		    ssid->mode == IEEE80211_MODE_AP)
+			return ssid;
 	}
+
 	return NULL;
 }
 
@@ -1088,13 +1080,7 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 #endif /* CONFIG_SME */
 
 	wpa_msg(wpa_s, MSG_INFO, "Associated with " MACSTR, MAC2STR(bssid));
-	if (wpa_s->current_ssid) {
-		/* When using scanning (ap_scan=1), SIM PC/SC interface can be
-		 * initialized before association, but for other modes,
-		 * initialize PC/SC here, if the current configuration needs
-		 * smartcard or SIM/USIM. */
-		wpa_supplicant_scard_init(wpa_s, wpa_s->current_ssid);
-	}
+
 	wpa_sm_notify_assoc(wpa_s->wpa, bssid);
 	if (wpa_s->l2)
 		l2_packet_notify_auth_start(wpa_s->l2);
@@ -1347,39 +1333,6 @@ static int any_interfaces(struct wpa_supplicant *head)
 #endif /* CONFIG_TERMINATE_ONLASTIF */
 
 
-static void
-wpa_supplicant_event_interface_status(struct wpa_supplicant *wpa_s,
-				      union wpa_event_data *data)
-{
-	if (os_strcmp(wpa_s->ifname, data->interface_status.ifname) != 0)
-		return;
-
-	switch (data->interface_status.ievent) {
-	case EVENT_INTERFACE_ADDED:
-		if (!wpa_s->interface_removed)
-			break;
-		wpa_s->interface_removed = 0;
-		wpa_printf(MSG_DEBUG, "Configured interface was added.");
-		if (wpa_supplicant_driver_init(wpa_s) < 0) {
-			wpa_printf(MSG_INFO, "Failed to initialize the driver "
-				   "after interface was added.");
-		}
-		break;
-	case EVENT_INTERFACE_REMOVED:
-		wpa_printf(MSG_DEBUG, "Configured interface was removed.");
-		wpa_s->interface_removed = 1;
-		wpa_supplicant_mark_disassoc(wpa_s);
-		l2_packet_deinit(wpa_s->l2);
-		wpa_s->l2 = NULL;
-#ifdef CONFIG_TERMINATE_ONLASTIF
-		/* check if last interface */
-		if (!any_interfaces(wpa_s->global->ifaces))
-			eloop_terminate();
-#endif /* CONFIG_TERMINATE_ONLASTIF */
-		break;
-	}
-}
-
 
 #ifdef CONFIG_PEERKEY
 static void
@@ -1571,9 +1524,6 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 #endif /* CONFIG_NO_SCAN_PROCESSING */
 	case EVENT_ASSOCINFO:
 		wpa_supplicant_event_associnfo(wpa_s, data);
-		break;
-	case EVENT_INTERFACE_STATUS:
-		wpa_supplicant_event_interface_status(wpa_s, data);
 		break;
 	case EVENT_PMKID_CANDIDATE:
 		wpa_supplicant_event_pmkid_candidate(wpa_s, data);
