@@ -1274,32 +1274,6 @@ void wpa_supplicant_select_network(struct wpa_supplicant *wpa_s,
 		wpas_notify_network_selected(wpa_s, ssid);
 }
 
-
-/**
- * wpa_supplicant_set_ap_scan - Set AP scan mode for interface
- * @wpa_s: wpa_supplicant structure for a network interface
- * @ap_scan: AP scan mode
- * Returns: 0 if succeed or -1 if ap_scan has an invalid value
- *
- */
-int wpa_supplicant_set_ap_scan(struct wpa_supplicant *wpa_s, int ap_scan)
-{
-
-	int old_ap_scan;
-
-	if (ap_scan < 0 || ap_scan > 2)
-		return -1;
-
-	old_ap_scan = wpa_s->conf->ap_scan;
-	wpa_s->conf->ap_scan = ap_scan;
-
-	if (old_ap_scan != wpa_s->conf->ap_scan)
-		wpas_notify_ap_scan_changed(wpa_s);
-
-	return 0;
-}
-
-
 /**
  * wpa_supplicant_set_debug_params - Set global debug params
  * @global: wpa_global structure

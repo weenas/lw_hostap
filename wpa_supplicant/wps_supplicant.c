@@ -402,9 +402,7 @@ static void wpa_supplicant_wps_event_success(struct wpa_supplicant *wpa_s)
 	wpa_msg(wpa_s, MSG_INFO, WPS_EVENT_SUCCESS);
 	wpa_s->wps_success = 1;
 	wpas_notify_wps_event_success(wpa_s);
-#ifdef CONFIG_P2P
-	wpas_p2p_wps_success(wpa_s, wpa_s->bssid, 0);
-#endif /* CONFIG_P2P */
+
 }
 
 
@@ -616,10 +614,10 @@ static struct wpa_ssid * wpas_wps_add_network(struct wpa_supplicant *wpa_s,
 	}
 
 	if (bssid) {
-#ifndef CONFIG_P2P
+
 		struct wpa_bss *bss;
 		int count = 0;
-#endif /* CONFIG_P2P */
+
 
 		os_memcpy(ssid->bssid, bssid, ETH_ALEN);
 		ssid->bssid_set = 1;
@@ -629,7 +627,7 @@ static struct wpa_ssid * wpas_wps_add_network(struct wpa_supplicant *wpa_s,
 		 * provisioning is started, so better not filter the AP based
 		 * on the current SSID in the scan results.
 		 */
-#ifndef CONFIG_P2P
+
 		dl_list_for_each(bss, &wpa_s->bss, struct wpa_bss, list) {
 			if (os_memcmp(bssid, bss->bssid, ETH_ALEN) != 0)
 				continue;
@@ -653,7 +651,7 @@ static struct wpa_ssid * wpas_wps_add_network(struct wpa_supplicant *wpa_s,
 			ssid->ssid = NULL;
 			ssid->ssid_len = 0;
 		}
-#endif /* CONFIG_P2P */
+
 	}
 
 	return ssid;
@@ -693,18 +691,7 @@ int wpas_wps_start_pbc(struct wpa_supplicant *wpa_s, const u8 *bssid,
 		return -1;
 	ssid->temporary = 1;
 	ssid->p2p_group = p2p_group;
-#ifdef CONFIG_P2P
-	if (p2p_group && wpa_s->go_params && wpa_s->go_params->ssid_len) {
-		ssid->ssid = os_zalloc(wpa_s->go_params->ssid_len + 1);
-		if (ssid->ssid) {
-			ssid->ssid_len = wpa_s->go_params->ssid_len;
-			os_memcpy(ssid->ssid, wpa_s->go_params->ssid,
-				  ssid->ssid_len);
-			wpa_hexdump_ascii(MSG_DEBUG, "WPS: Use specific AP "
-					  "SSID", ssid->ssid, ssid->ssid_len);
-		}
-	}
-#endif /* CONFIG_P2P */
+
 	wpa_config_set(ssid, "phase1", "\"pbc=1\"", 0);
 	if (wpa_s->wps_fragment_size)
 		ssid->eap.fragment_size = wpa_s->wps_fragment_size;
@@ -728,18 +715,6 @@ int wpas_wps_start_pin(struct wpa_supplicant *wpa_s, const u8 *bssid,
 		return -1;
 	ssid->temporary = 1;
 	ssid->p2p_group = p2p_group;
-#ifdef CONFIG_P2P
-	if (p2p_group && wpa_s->go_params && wpa_s->go_params->ssid_len) {
-		ssid->ssid = os_zalloc(wpa_s->go_params->ssid_len + 1);
-		if (ssid->ssid) {
-			ssid->ssid_len = wpa_s->go_params->ssid_len;
-			os_memcpy(ssid->ssid, wpa_s->go_params->ssid,
-				  ssid->ssid_len);
-			wpa_hexdump_ascii(MSG_DEBUG, "WPS: Use specific AP "
-					  "SSID", ssid->ssid, ssid->ssid_len);
-		}
-	}
-#endif /* CONFIG_P2P */
 	if (pin)
 		os_snprintf(val, sizeof(val), "\"pin=%s dev_pw_id=%u\"",
 			    pin, dev_pw_id);

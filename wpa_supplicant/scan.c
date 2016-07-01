@@ -26,29 +26,6 @@
 #include "bss.h"
 #include "scan.h"
 
-
-static void wpa_supplicant_gen_assoc_event(struct wpa_supplicant *wpa_s)
-{
-	struct wpa_ssid *ssid;
-	union wpa_event_data data;
-
-	ssid = wpa_supplicant_get_ssid(wpa_s);
-	if (ssid == NULL)
-		return;
-
-	if (wpa_s->current_ssid == NULL) {
-		wpa_s->current_ssid = ssid;
-		if (wpa_s->current_ssid != NULL)
-			wpas_notify_network_changed(wpa_s);
-	}
-	wpa_supplicant_initiate_eapol(wpa_s);
-	wpa_printf(MSG_DEBUG, "Already associated with a configured network - "
-		   "generating associated event");
-	os_memset(&data, 0, sizeof(data));
-	wpa_supplicant_event(wpa_s, EVENT_ASSOC, &data);
-}
-
-
 #ifdef CONFIG_WPS
 static int wpas_wps_in_use(struct wpa_config *conf,
 			   enum wps_request_type *req_type)
@@ -273,11 +250,6 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 		wpas_notify_ap_scan_changed(wpa_s);
 	}
 
-	if (wpa_s->conf->ap_scan == 0) {
-		wpa_supplicant_gen_assoc_event(wpa_s);
-		return;
-	}
-
 	max_ssids = wpa_s->max_scan_ssids;
 	if (max_ssids > WPAS_MAX_SCAN_SSIDS)
 		max_ssids = WPAS_MAX_SCAN_SSIDS;
@@ -373,35 +345,7 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 		wpa_printf(MSG_DEBUG, "Starting AP scan for wildcard SSID");
 	}
 
-#ifdef CONFIG_P2P
-	wpa_s->wps->dev.p2p = 1;
-	if (!wps) {
-		wps = 1;
-		req_type = WPS_REQ_ENROLLEE_INFO;
-	}
 
-	if (params.freqs == NULL && wpa_s->p2p_in_provisioning &&
-	    wpa_s->go_params) {
-		/* Optimize provisioning state scan based on GO information */
-		if (wpa_s->p2p_in_provisioning < 5 &&
-		    wpa_s->go_params->freq > 0) {
-			wpa_printf(MSG_DEBUG, "P2P: Scan only GO preferred "
-				   "frequency %d MHz",
-				   wpa_s->go_params->freq);
-			params.freqs = os_zalloc(2 * sizeof(int));
-			if (params.freqs)
-				params.freqs[0] = wpa_s->go_params->freq;
-		} else if (wpa_s->go_params->freq_list[0]) {
-			wpa_printf(MSG_DEBUG, "P2P: Scan only common "
-				   "channels");
-			int_array_concat(&params.freqs,
-					 wpa_s->go_params->freq_list);
-			if (params.freqs)
-				int_array_sort_unique(params.freqs);
-		}
-		wpa_s->p2p_in_provisioning++;
-	}
-#endif /* CONFIG_P2P */
 
 #ifdef CONFIG_WPS
 	if (params.freqs == NULL && wpa_s->after_wps && wpa_s->wps_freq) {
@@ -427,15 +371,6 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 	}
 #endif /* CONFIG_WPS */
 
-#ifdef CONFIG_P2P
-	if (wps_ie) {
-		if (wpabuf_resize(&wps_ie, 100) == 0) {
-			wpas_p2p_scan_ie(wpa_s, wps_ie);
-			params.extra_ies = wpabuf_head(wps_ie);
-			params.extra_ies_len = wpabuf_len(wps_ie);
-		}
-	}
-#endif /* CONFIG_P2P */
 
 	params.filter_ssids = wpa_supplicant_build_filter_ssids(
 		wpa_s->conf, &params.num_filter_ssids);

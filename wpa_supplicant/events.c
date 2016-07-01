@@ -773,11 +773,6 @@ static void wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 
 	wpas_notify_scan_done(wpa_s, 1);
 
-	if ((wpa_s->conf->ap_scan == 2 && !wpas_wps_searching(wpa_s))) {
-		wpa_scan_results_free(scan_res);
-		return;
-	}
-
 	if (wpa_s->disconnected) {
 		wpa_supplicant_set_state(wpa_s, WPA_DISCONNECTED);
 		wpa_scan_results_free(scan_res);

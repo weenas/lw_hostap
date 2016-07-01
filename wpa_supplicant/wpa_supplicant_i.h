@@ -44,18 +44,6 @@ struct ctrl_iface_priv;
 struct ctrl_iface_global_priv;
 struct wpas_dbus_priv;
 
-struct p2p_srv_bonjour {
-	struct dl_list list;
-	struct wpabuf *query;
-	struct wpabuf *resp;
-};
-
-struct p2p_srv_upnp {
-	struct dl_list list;
-	u8 version;
-	char *service;
-};
-
 /**
  * struct wpa_supplicant - Internal data for wpa_supplicant interface
  *
@@ -223,8 +211,6 @@ void wpa_supplicant_disable_network(struct wpa_supplicant *wpa_s,
 				    struct wpa_ssid *ssid);
 void wpa_supplicant_select_network(struct wpa_supplicant *wpa_s,
 				   struct wpa_ssid *ssid);
-int wpa_supplicant_set_ap_scan(struct wpa_supplicant *wpa_s,
-			       int ap_scan);
 int wpa_supplicant_set_debug_params(struct wpa_supplicant *wpa_s,
 				    int debug_level, int debug_timestamp,
 				    int debug_show_keys);
