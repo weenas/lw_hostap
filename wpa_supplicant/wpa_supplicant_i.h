@@ -58,13 +58,6 @@ struct wpa_supplicant {
 
 	unsigned char own_addr[ETH_ALEN];
 	char ifname[100];
-#ifdef CONFIG_CTRL_IFACE_DBUS
-	char *dbus_path;
-#endif /* CONFIG_CTRL_IFACE_DBUS */
-#ifdef CONFIG_CTRL_IFACE_DBUS_NEW
-	char *dbus_new_path;
-#endif /* CONFIG_CTRL_IFACE_DBUS_NEW */
-
 	struct wpa_config *conf;
 	int countermeasures;
 	os_time_t last_michael_mic_error;
@@ -148,25 +141,6 @@ struct wpa_supplicant {
 	int sta_uapsd;
 	int set_ap_uapsd;
 	int ap_uapsd;
-
-#ifdef CONFIG_SME
-	struct {
-		u8 ssid[32];
-		size_t ssid_len;
-		int freq;
-		u8 assoc_req_ie[200];
-		size_t assoc_req_ie_len;
-		int mfp;
-		int ft_used;
-		u8 mobility_domain[2];
-		u8 *ft_ies;
-		size_t ft_ies_len;
-		u8 prev_bssid[ETH_ALEN];
-		int prev_bssid_set;
-		int auth_alg;
-	} sme;
-#endif /* CONFIG_SME */
-
 
 	void *bgscan_priv;
 

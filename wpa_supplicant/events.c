@@ -847,65 +847,6 @@ static int wpa_supplicant_event_associnfo(struct wpa_supplicant *wpa_s,
 		wpa_sm_set_assoc_wpa_ie(wpa_s->wpa, NULL, 0);
 
 #ifdef CONFIG_IEEE80211R
-#ifdef CONFIG_SME
-	if (wpa_s->sme.auth_alg == WPA_AUTH_ALG_FT) {
-		u8 bssid[ETH_ALEN];
-		if (wpa_drv_get_bssid(wpa_s, bssid) < 0 ||
-		    wpa_ft_validate_reassoc_resp(wpa_s->wpa,
-						 data->assoc_info.resp_ies,
-						 data->assoc_info.resp_ies_len,
-						 bssid) < 0) {
-			wpa_printf(MSG_DEBUG, "FT: Validation of "
-				   "Reassociation Response failed");
-			wpa_supplicant_deauthenticate(
-				wpa_s, WLAN_REASON_INVALID_IE);
-			return -1;
-		}
-	}
-
-	p = data->assoc_info.resp_ies;
-	l = data->assoc_info.resp_ies_len;
-
-#ifdef CONFIG_WPS_STRICT
-	if (wpa_s->current_ssid &&
-	    wpa_s->current_ssid->key_mgmt == WPA_KEY_MGMT_WPS) {
-		struct wpabuf *wps;
-		wps = ieee802_11_vendor_ie_concat(p, l, WPS_IE_VENDOR_TYPE);
-		if (wps == NULL) {
-			wpa_printf(MSG_INFO, "WPS-STRICT: AP did not include "
-				   "WPS IE in (Re)Association Response");
-			return -1;
-		}
-
-		if (wps_validate_assoc_resp(wps) < 0) {
-			wpabuf_free(wps);
-			wpa_supplicant_deauthenticate(
-				wpa_s, WLAN_REASON_INVALID_IE);
-			return -1;
-		}
-		wpabuf_free(wps);
-	}
-#endif /* CONFIG_WPS_STRICT */
-
-	/* Go through the IEs and make a copy of the MDIE, if present. */
-	while (p && l >= 2) {
-		len = p[1] + 2;
-		if (len > l) {
-			wpa_hexdump(MSG_DEBUG, "Truncated IE in assoc_info",
-				    p, l);
-			break;
-		}
-		if (p[0] == WLAN_EID_MOBILITY_DOMAIN &&
-		    p[1] >= MOBILITY_DOMAIN_ID_LEN) {
-			wpa_s->sme.ft_used = 1;
-			os_memcpy(wpa_s->sme.mobility_domain, p + 2,
-				  MOBILITY_DOMAIN_ID_LEN);
-			break;
-		}
-		l -= len;
-		p += len;
-	}
-#endif /* CONFIG_SME */
 
 	wpa_sm_set_ft_params(wpa_s->wpa, data->assoc_info.resp_ies,
 			     data->assoc_info.resp_ies_len);
@@ -999,11 +940,6 @@ static void wpa_supplicant_event_assoc(struct wpa_supplicant *wpa_s,
 				wpa_s->current_bss = bss;
 		}
 	}
-
-#ifdef CONFIG_SME
-	os_memcpy(wpa_s->sme.prev_bssid, bssid, ETH_ALEN);
-	wpa_s->sme.prev_bssid_set = 1;
-#endif /* CONFIG_SME */
 
 	wpa_msg(wpa_s, MSG_INFO, "Associated with " MACSTR, MAC2STR(bssid));
 

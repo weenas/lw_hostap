@@ -326,18 +326,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 
 	wpabuf_free(wpa_s->pending_eapol_rx);
 	wpa_s->pending_eapol_rx = NULL;
-
-#ifdef CONFIG_IBSS_RSN
-	ibss_rsn_deinit(wpa_s->ibss_rsn);
-	wpa_s->ibss_rsn = NULL;
-#endif /* CONFIG_IBSS_RSN */
-
-#ifdef CONFIG_SME
-	os_free(wpa_s->sme.ft_ies);
-	wpa_s->sme.ft_ies = NULL;
-	wpa_s->sme.ft_ies_len = 0;
-#endif /* CONFIG_SME */
-
 }
 
 
