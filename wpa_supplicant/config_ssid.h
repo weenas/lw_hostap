@@ -267,34 +267,6 @@ struct wpa_ssid {
 
 #endif /* IEEE8021X_EAPOL */
 
-	/**
-	 * mode - IEEE 802.11 operation mode (Infrastucture/IBSS)
-	 *
-	 * 0 = infrastructure (Managed) mode, i.e., associate with an AP.
-	 *
-	 * 1 = IBSS (ad-hoc, peer-to-peer)
-	 *
-	 * 2 = AP (access point)
-	 *
-	 * 3 = P2P Group Owner (can be set in the configuration file)
-	 *
-	 * 4 = P2P Group Formation (used internally; not in configuration
-	 * files)
-	 *
-	 * Note: IBSS can only be used with key_mgmt NONE (plaintext and
-	 * static WEP) and key_mgmt=WPA-NONE (fixed group key TKIP/CCMP). In
-	 * addition, ap_scan has to be set to 2 for IBSS. WPA-None requires
-	 * following network block options: proto=WPA, key_mgmt=WPA-NONE,
-	 * pairwise=NONE, group=TKIP (or CCMP, but not both), and psk must also
-	 * be set (either directly or using ASCII passphrase).
-	 */
-	enum wpas_mode {
-		WPAS_MODE_INFRA = 0,
-		WPAS_MODE_IBSS = 1,
-		WPAS_MODE_AP = 2,
-		WPAS_MODE_P2P_GO = 3,
-		WPAS_MODE_P2P_GROUP_FORMATION = 4,
-	} mode;
 
 	/**
 	 * disabled - Whether this network is currently disabled
@@ -386,15 +358,6 @@ struct wpa_ssid {
 	 */
 	int *freq_list;
 
-	/**
-	 * p2p_group - Network generated as a P2P group (used internally)
-	 */
-	int p2p_group;
-
-	/**
-	 * p2p_persistent_group - Whether this is a persistent group
-	 */
-	int p2p_persistent_group;
 
 	/**
 	 * temporary - Whether this network is temporary and not to be saved
