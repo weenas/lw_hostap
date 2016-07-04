@@ -1568,35 +1568,21 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s)
 	 * EAPOL-Key packets if both become available for the same select()
 	 * call. */
 
-next_driver:
-	if (wpa_supplicant_set_driver(wpa_s, driver) < 0)
-		return -1;
 
+	if (wpa_supplicant_set_driver(wpa_s, DEFAULT_DRIV_NAME) < 0)
+		return -1;
+	/* wext driver support init, so not take care of global_priv */
 	wpa_s->drv_priv = wpa_drv_init(wpa_s, wpa_s->ifname);
-	if (wpa_s->drv_priv == NULL) {
-		const char *pos;
-		pos = driver ? os_strchr(driver, ',') : NULL;
-		if (pos) {
-			wpa_printf(MSG_DEBUG, "Failed to initialize driver "
-				   "interface - try next driver wrapper");
-			driver = pos + 1;
-			goto next_driver;
-		}
+	if (wpa_s->drv_priv == NULL) {	
 		wpa_printf(MSG_ERROR, "Failed to initialize driver interface");
 		return -1;
 	}
-
-	ifname = wpa_drv_get_ifname(wpa_s);
-	if (ifname && os_strcmp(ifname, wpa_s->ifname) != 0) {
-		wpa_printf(MSG_DEBUG, "Driver interface replaced interface "
-			   "name with '%s'", ifname);
-		os_strlcpy(wpa_s->ifname, ifname, sizeof(wpa_s->ifname));
-	}
+	/* wext not support get ifname  */
 
 	if (wpa_supplicant_init_wpa(wpa_s) < 0)
 		return -1;
 
-	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname, NULL);
+	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname);
 
 
 	if (wpa_drv_get_capa(wpa_s, &capa) == 0) {
@@ -1607,7 +1593,7 @@ next_driver:
 	}
 	if (wpa_s->max_remain_on_chan == 0)
 		wpa_s->max_remain_on_chan = 1000;
-
+	/* here will get mac addr */
 	if (wpa_supplicant_driver_init(wpa_s) < 0)
 		return -1;
 
@@ -1673,13 +1659,12 @@ struct wpa_supplicant *wpa_supplicant_init(void)
 	wpa_s = os_zalloc(sizeof(*wpa_s));
 	if (wpa_s == NULL)
 		return NULL;
-	/* 1. eloop int */
+	/* 1. init ifname as "wlan0" */
+	os_memcpy(wpa_s->ifname,  DEFAULT_INTF_NAME, os_strlen(DEFAULT_INTF_NAME));
+	
+	/* 2. eloop int */
 	if (eloop_init()) {
 		wpa_printf(MSG_ERROR, "Failed to initialize event loop");
-		return NULL;
-	}
-	/* 2. set driver  driver name is */
-	if (wpa_supplicant_set_driver(wpa_s, NULL) < 0) {
 		return NULL;
 	}
 

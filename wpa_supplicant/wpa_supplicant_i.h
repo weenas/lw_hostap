@@ -30,7 +30,6 @@ extern const char *wpa_supplicant_full_license5;
 
 struct wpa_sm;
 struct wpa_supplicant;
-struct ibss_rsn;
 struct scan_info;
 struct wpa_bss;
 struct wpa_scan_results;

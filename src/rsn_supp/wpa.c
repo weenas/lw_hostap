@@ -2213,8 +2213,7 @@ void wpa_sm_set_own_addr(struct wpa_sm *sm, const u8 *addr)
  * @ifname: Interface name
  * @bridge_ifname: Optional bridge interface name (for pre-auth)
  */
-void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname,
-		       const char *bridge_ifname)
+void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname)
 {
 	if (sm) {
 		sm->ifname = ifname;
