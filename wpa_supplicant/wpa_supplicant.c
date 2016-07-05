@@ -293,8 +293,10 @@ void wpa_supplicant_set_non_wpa_policy(struct wpa_supplicant *wpa_s,
 static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 {
 
+#ifdef CONFIG_L2_PACKET
 	l2_packet_deinit(wpa_s->l2);
 	wpa_s->l2 = NULL;
+#endif /* CONFIG_L2_PACKET */
 
 
 	if (wpa_s->conf != NULL) {
@@ -1510,6 +1512,7 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 		const u8 *addr = wpa_drv_get_mac_addr(wpa_s);
 		if (addr)
 			os_memcpy(wpa_s->own_addr, addr, ETH_ALEN);
+#ifdef CONFIG_L2_PACKET
 	} else if (!(wpa_s->drv_flags &
 		     WPA_DRIVER_FLAGS_P2P_DEDICATED_INTERFACE)) {
 		wpa_s->l2 = l2_packet_init(wpa_s->ifname,
@@ -1518,16 +1521,19 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 					   wpa_supplicant_rx_eapol, wpa_s, 0);
 		if (wpa_s->l2 == NULL)
 			return -1;
+#endif /* CONFIG_L2_PACKET */
 	} else {
 		const u8 *addr = wpa_drv_get_mac_addr(wpa_s);
 		if (addr)
 			os_memcpy(wpa_s->own_addr, addr, ETH_ALEN);
 	}
 
+#ifdef CONFIG_L2_PACKET
 	if (wpa_s->l2 && l2_packet_get_own_addr(wpa_s->l2, wpa_s->own_addr)) {
 		wpa_printf(MSG_ERROR, "Failed to get own L2 address");
 		return -1;
 	}
+#endif /* CONFIG_L2_PACKET */
 
 	wpa_printf(MSG_DEBUG, "Own MAC address: " MACSTR,
 		   MAC2STR(wpa_s->own_addr));

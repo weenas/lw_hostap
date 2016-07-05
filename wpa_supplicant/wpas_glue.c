@@ -99,9 +99,11 @@ static u8 * wpa_alloc_eapol(const struct wpa_supplicant *wpa_s, u8 type,
 static int wpa_ether_send(struct wpa_supplicant *wpa_s, const u8 *dest,
 			  u16 proto, const u8 *buf, size_t len)
 {
+#ifdef CONFIG_L2_PACKET
 	if (wpa_s->l2) {
 		return l2_packet_send(wpa_s->l2, dest, proto, buf, len);
 	}
+#endif /* CONFIG_L2_PACKET */
 
 	return wpa_drv_send_eapol(wpa_s, dest, proto, buf, len);
 }
