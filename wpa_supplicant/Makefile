@@ -151,8 +151,8 @@ endif
 
 ifndef CONFIG_NO_WPA
 OBJS += ../src/rsn_supp/wpa.o
-OBJS += ../src/rsn_supp/preauth.o
-OBJS += ../src/rsn_supp/pmksa_cache.o
+#OBJS += ../src/rsn_supp/preauth.o
+#OBJS += ../src/rsn_supp/pmksa_cache.o
 #OBJS += ../src/rsn_supp/peerkey.o
 OBJS += ../src/rsn_supp/wpa_ie.o
 OBJS += ../src/common/wpa_common.o
