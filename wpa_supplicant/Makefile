@@ -208,11 +208,11 @@ LDFLAGS += $(DRV_WPA_LDFLAGS)
 LIBS += $(DRV_WPA_LIBS)
 endif
 
-ifndef CONFIG_L2_PACKET
-CONFIG_L2_PACKET=linux
-endif
+#ifndef CONFIG_L2_PACKET
+#CONFIG_L2_PACKET=linux
+#endif
 
-OBJS_l2 += ../src/l2_packet/l2_packet_$(CONFIG_L2_PACKET).o
+#OBJS_l2 += ../src/l2_packet/l2_packet_$(CONFIG_L2_PACKET).o
 
 ifeq ($(CONFIG_L2_PACKET), pcap)
 ifdef CONFIG_WINPCAP
