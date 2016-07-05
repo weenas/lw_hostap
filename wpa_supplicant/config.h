@@ -25,6 +25,8 @@
 #define DEFAULT_P2P_GO_INTENT 7
 #define DEFAULT_P2P_INTRA_BSS 1
 #define DEFAULT_BSS_MAX_COUNT 200
+#define DEFAULT_DRIV_NAME "wext"
+#define DEFAULT_INTF_NAME "wlan0"
 
 #include "config_ssid.h"
 

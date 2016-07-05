@@ -95,8 +95,7 @@ void wpa_sm_set_fast_reauth(struct wpa_sm *sm, int fast_reauth);
 void wpa_sm_set_scard_ctx(struct wpa_sm *sm, void *scard_ctx);
 void wpa_sm_set_config(struct wpa_sm *sm, struct rsn_supp_config *config);
 void wpa_sm_set_own_addr(struct wpa_sm *sm, const u8 *addr);
-void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname,
-		       const char *bridge_ifname);
+void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname);
 void wpa_sm_set_eapol(struct wpa_sm *sm, struct eapol_sm *eapol);
 int wpa_sm_set_assoc_wpa_ie(struct wpa_sm *sm, const u8 *ie, size_t len);
 int wpa_sm_set_assoc_wpa_ie_default(struct wpa_sm *sm, u8 *wpa_ie,
@@ -171,8 +170,7 @@ static inline void wpa_sm_set_own_addr(struct wpa_sm *sm, const u8 *addr)
 {
 }
 
-static inline void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname,
-				     const char *bridge_ifname)
+static inline void wpa_sm_set_ifname(struct wpa_sm *sm, const char *ifname)
 {
 }
 
