@@ -976,6 +976,7 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 	params.group_suite = cipher_group;
 	params.key_mgmt_suite = key_mgmt2driver(wpa_s->key_mgmt);
 	params.auth_alg = algs;
+	params.mode = 0; /* 0 infra, 1 IBSS */
 	for (i = 0; i < NUM_WEP_KEYS; i++) {
 		if (ssid->wep_key_len[i])
 			params.wep_key[i] = ssid->wep_key[i];
