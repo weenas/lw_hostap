@@ -187,6 +187,11 @@ static inline u8 * wpa_sm_alloc_eapol(struct wpa_sm *sm, u8 type,
 				    msg_len, data_pos);
 }
 
+static inline void wpa_sm_free_eapol(struct wpa_sm *sm,  void *data)
+{
+	WPA_ASSERT(sm->ctx->free_eapol);
+	sm->ctx->free_eapol(sm->ctx->ctx, data);
+}
 static inline int wpa_sm_add_pmkid(struct wpa_sm *sm, const u8 *bssid,
 				   const u8 *pmkid)
 {

@@ -367,6 +367,11 @@ struct wpa_driver_associate_params {
 	 * Bit field of WPA_AUTH_ALG_*
 	 */
 	int auth_alg;
+	/**
+	 * 
+	 * mode - Operation mode (infra/ibss) IEEE80211_MODE_*
+	 */
+	int mode;
 
 	/**
 	 * mode - Operation mode (infra/ibss) IEEE80211_MODE_*
