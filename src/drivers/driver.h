@@ -369,6 +369,11 @@ struct wpa_driver_associate_params {
 	int auth_alg;
 
 	/**
+	 * mode - Operation mode (infra/ibss) IEEE80211_MODE_*
+	 */
+	int mode;
+
+	/**
 	 * wep_key - WEP keys for static WEP configuration
 	 */
 	const u8 *wep_key[4];
