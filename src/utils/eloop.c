@@ -25,6 +25,7 @@ struct eloop_timeout {
 	struct os_time time;
 	void *eloop_data;
 	void *user_data;
+	int online;
 	eloop_timeout_handler handler;
 	WPA_TRACE_REF(eloop);
 	WPA_TRACE_REF(user);
@@ -220,27 +221,16 @@ static void eloop_handle_alarm(int sig)
 int eloop_register_signal_reconfig(eloop_signal_handler handler,
 				   void *user_data)
 {
-#ifdef CONFIG_NATIVE_WINDOWS
 	return 0;
-#else /* CONFIG_NATIVE_WINDOWS */
-	return eloop_register_signal(SIGHUP, handler, user_data);
-#endif /* CONFIG_NATIVE_WINDOWS */
 }
 
 
 void eloop_run(void)
 {
-	fd_set *rfds, *wfds, *efds;
-	int res;
 	struct timeval _tv;
 	struct os_time tv, now;
 
-	if (rfds == NULL || wfds == NULL || efds == NULL)
-		goto out;
-
-	while (!eloop.terminate &&
-	       (!dl_list_empty(&eloop.timeout) || eloop.readers.count > 0 ||
-		eloop.writers.count > 0 || eloop.exceptions.count > 0)) {
+	while (!eloop.terminate) {
 		struct eloop_timeout *timeout;
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
 					list);
@@ -253,7 +243,6 @@ void eloop_run(void)
 			_tv.tv_sec = tv.sec;
 			_tv.tv_usec = tv.usec;
 		}
-
 
 		/* check if some registered timeouts have occurred */
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
@@ -268,12 +257,8 @@ void eloop_run(void)
 				eloop_remove_timeout(timeout);
 				handler(eloop_data, user_data);
 			}
-
 		}
-
-
 	}
-
 }
 
 

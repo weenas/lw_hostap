@@ -68,7 +68,7 @@ void wpa_eapol_key_send(struct wpa_sm *sm, const u8 *kck,
 	wpa_sm_ether_send(sm, dest, proto, msg, msg_len);
 	eapol_sm_notify_tx_eapol_key(sm->eapol);
 out:
-	os_free(msg);
+	wpa_sm_free_eapol(sm, msg);
 }
 
 
@@ -307,7 +307,9 @@ int wpa_supplicant_send_2_of_4(struct wpa_sm *sm, const unsigned char *dst,
 				  NULL, sizeof(*reply) + wpa_ie_len,
 				  &rlen, (void *) &reply);
 	if (rbuf == NULL) {
+#ifdef CONFIG_IEEE80211R
 		os_free(rsn_ie_buf);
+#endif
 		return -1;
 	}
 
@@ -324,7 +326,9 @@ int wpa_supplicant_send_2_of_4(struct wpa_sm *sm, const unsigned char *dst,
 
 	WPA_PUT_BE16(reply->key_data_length, wpa_ie_len);
 	os_memcpy(reply + 1, wpa_ie, wpa_ie_len);
+#ifdef CONFIG_IEEE80211R
 	os_free(rsn_ie_buf);
+#endif
 
 	os_memcpy(reply->key_nonce, nonce, WPA_NONCE_LEN);
 
@@ -1559,7 +1563,8 @@ int wpa_sm_rx_eapol(struct wpa_sm *sm, const u8 *src_addr,
 		return 0;
 	}
 
-	tmp = os_malloc(len);
+	tmp = wpa_sm_alloc_eapol(sm, IEEE802_1X_TYPE_EAPOL_KEY, NULL,
+				  len, NULL, NULL);
 	if (tmp == NULL)
 		return -1;
 	os_memcpy(tmp, buf, len);
@@ -1772,7 +1777,7 @@ int wpa_sm_rx_eapol(struct wpa_sm *sm, const u8 *src_addr,
 	ret = 1;
 
 out:
-	os_free(tmp);
+	wpa_sm_free_eapol(sm, tmp);
 	return ret;
 }
 

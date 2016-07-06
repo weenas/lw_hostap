@@ -26,6 +26,7 @@
 /**
  * ELOOP_ALL_CTX - eloop_cancel_timeout() magic number to match all timeouts
  */
+#define MAX_TIMER_COUNT  16 
 #define ELOOP_ALL_CTX (void *) -1
 
 /**
