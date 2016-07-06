@@ -231,6 +231,7 @@
 # (e.g., 90 kB).
 #CONFIG_NO_STDOUT_DEBUG=y
 CONFIG_NO_WPA_MSG=y
+CONFIG_NO_HOSTAPD_LOGGER=y
 
 # Remove WPA support, e.g., for wired-only IEEE 802.1X supplicant, to save
 # 35-50 kB in code size.
