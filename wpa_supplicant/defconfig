@@ -251,6 +251,7 @@ CONFIG_NO_WPA_MSG=y
 # Disable scan result processing (ap_mode=1) to save code size by about 1 kB.
 # This can be used if ap_scan=1 mode is never enabled.
 #CONFIG_NO_SCAN_PROCESSING=y
+#CONFIG_SCAN_SORTING=y
 
 # Select configuration backend:
 # file = text file (e.g., wpa_supplicant.conf; note: the configuration file

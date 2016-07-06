@@ -581,6 +581,7 @@ struct wpabuf * wpa_scan_get_vendor_ie_multi_beacon(
 }
 
 
+#ifdef CONFIG_SCAN_SORTING
 /* Compare function for sorting scan results. Return >0 if @b is considered
  * better. */
 static int wpa_scan_result_compar(const void *a, const void *b)
@@ -628,6 +629,7 @@ static int wpa_scan_result_compar(const void *a, const void *b)
 		return wb->qual - wa->qual;
 	return wb->level - wa->level;
 }
+#endif /* CONFIG_SCAN_SORTING */
 
 
 #ifdef CONFIG_WPS
@@ -695,7 +697,9 @@ wpa_supplicant_get_scan_results(struct wpa_supplicant *wpa_s,
 {
 	struct wpa_scan_results *scan_res;
 	size_t i;
+#ifdef CONFIG_SCAN_SORTING
 	int (*compar)(const void *, const void *) = wpa_scan_result_compar;
+#endif /* CONFIG_SCAN_SORTING */
 
 	scan_res = wpa_drv_get_scan_results2(wpa_s);
 	if (scan_res == NULL) {
@@ -711,8 +715,10 @@ wpa_supplicant_get_scan_results(struct wpa_supplicant *wpa_s,
 	}
 #endif /* CONFIG_WPS */
 
+#ifdef CONFIG_SCAN_SORTING
 	qsort(scan_res->res, scan_res->num, sizeof(struct wpa_scan_res *),
 	      compar);
+#endif /* CONFIG_SCAN_SORTING */
 
 	wpa_bss_update_start(wpa_s);
 	for (i = 0; i < scan_res->num; i++)
