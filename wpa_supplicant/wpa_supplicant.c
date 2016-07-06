@@ -1563,7 +1563,6 @@ int wpa_supplicant_driver_init(struct wpa_supplicant *wpa_s)
 static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s)
 				   
 {
-	const char *ifname, *driver;
 	struct wpa_driver_capa capa;
 
 	/* RSNA Supplicant Key Management - INITIALIZE */

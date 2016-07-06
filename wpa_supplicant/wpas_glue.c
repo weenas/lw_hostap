@@ -59,7 +59,7 @@ wpa_supplicant_get_config_blob(void *ctx, const char *name)
 #endif /* CONFIG_NO_CONFIG_BLOBS */
 
 
-#if defined(IEEE8021X_EAPOL) || !defined(CONFIG_NO_WPA)
+#if defined(IEEE8021X_EAPOL) 
 static u8 * wpa_alloc_eapol(const struct wpa_supplicant *wpa_s, u8 type,
 			    const void *data, u16 data_len,
 			    size_t *msg_len, void **data_pos)
@@ -85,8 +85,9 @@ static u8 * wpa_alloc_eapol(const struct wpa_supplicant *wpa_s, u8 type,
 
 	return (u8 *) hdr;
 }
+#endif
 
-
+#if defined(IEEE8021X_EAPOL) || !defined(CONFIG_NO_WPA)
 /**
  * wpa_ether_send - Send Ethernet frame
  * @wpa_s: Pointer to wpa_supplicant data
@@ -351,14 +352,90 @@ static int wpa_supplicant_get_beacon_ie(void *ctx)
 }
 
 
-static u8 * _wpa_alloc_eapol(void *wpa_s, u8 type,
+static u8 * _wpa_alloc_eapol(struct wpa_supplicant *wpa_s, u8 type,
 			     const void *data, u16 data_len,
 			     size_t *msg_len, void **data_pos)
 {
-	return wpa_alloc_eapol(wpa_s, type, data, data_len, msg_len, data_pos);
+	struct ieee802_1x_hdr *hdr;
+	if (msg_len == NULL) {
+	/* here we malloc 4-handshark receiv packet and only support one interface */
+		if (wpa_s->receiv_buf_use)
+			return NULL;		
+		wpa_s->receiv_buf_use = 1;
+		return wpa_s->eapol_receiv_buf;
+	} else {
+		if (wpa_s->send_buf_use)
+			return NULL;	
+		wpa_s->send_buf_use = 1;
+		*msg_len = sizeof(*hdr) + data_len;
+		hdr = (struct ieee802_1x_hdr *) wpa_s->eapol_send_buf;
+
+		hdr->version = wpa_s->conf->eapol_version;
+		hdr->type = type;
+		hdr->length = host_to_be16(data_len);
+
+		if (data)
+			os_memcpy(hdr + 1, data, data_len);
+		else
+			os_memset(hdr + 1, 0, data_len);
+
+		if (data_pos)
+			*data_pos = hdr + 1;
+
+		return (u8 *) hdr;
+	}
+
 }
 
+static void _wpa_free_eapol(struct wpa_supplicant *wpa_s,   void *data)
+{
+	if (data == wpa_s->eapol_receiv_buf) {
+		os_memset(wpa_s->eapol_receiv_buf, 0, MAX_EAPOL_DATA);
+		wpa_s->receiv_buf_use = 0;
+	}
+	else if(data == wpa_s->eapol_send_buf) {
+		os_memset(wpa_s->eapol_send_buf, 0, MAX_EAPOL_DATA);
+		wpa_s->send_buf_use = 0;
+	}
+	else {
+		os_free(data);
+	}
+}
+static u8 * __wpa_alloc_eapol(void *wpa_s, u8 type,
+			     const void *data, u16 data_len,
+			     size_t *msg_len, void **data_pos)
+{
+	return _wpa_alloc_eapol(wpa_s, type, data, data_len, msg_len, data_pos);
+}
 
+static void __wpa_free_eapol(void *wpa_s, void *data)
+{
+	_wpa_free_eapol(wpa_s, data);
+}
+static void wpa_eapol_mem_deinit(struct wpa_supplicant *wpa_s)
+{
+	if (wpa_s->eapol_send_buf) {
+		os_free(wpa_s->eapol_send_buf);
+		wpa_s->eapol_send_buf = NULL;
+	}
+	if (wpa_s->eapol_receiv_buf) {
+		os_free(wpa_s->eapol_receiv_buf);
+		wpa_s->eapol_receiv_buf = NULL;
+	}
+}
+static int wpa_eapol_mem_init(struct wpa_supplicant *wpa_s)
+{
+	wpa_s->eapol_send_buf = os_malloc(MAX_EAPOL_DATA);
+	if (wpa_s->eapol_send_buf == NULL){
+		return -1;
+	}
+	wpa_s->eapol_receiv_buf = os_malloc(MAX_EAPOL_DATA);
+	if (wpa_s->eapol_receiv_buf == NULL){
+		os_free(wpa_s->eapol_send_buf);
+		return -1;
+	}
+	return 0;
+}
 static int _wpa_ether_send(void *wpa_s, const u8 *dest, u16 proto,
 			   const u8 *buf, size_t len)
 {
@@ -596,6 +673,7 @@ int wpa_supplicant_init_eapol(struct wpa_supplicant *wpa_s)
 			   "machines.");
 		return -1;
 	}
+	
 #endif /* IEEE8021X_EAPOL */
 
 	return 0;
@@ -623,7 +701,8 @@ int wpa_supplicant_init_wpa(struct wpa_supplicant *wpa_s)
 	ctx->get_bssid = wpa_supplicant_get_bssid;
 	ctx->ether_send = _wpa_ether_send;
 	ctx->get_beacon_ie = wpa_supplicant_get_beacon_ie;
-	ctx->alloc_eapol = _wpa_alloc_eapol;
+	ctx->alloc_eapol = __wpa_alloc_eapol;
+	ctx->free_eapol = __wpa_free_eapol;
 	ctx->cancel_auth_timeout = _wpa_supplicant_cancel_auth_timeout;
 	ctx->add_pmkid = wpa_supplicant_add_pmkid;
 	ctx->remove_pmkid = wpa_supplicant_remove_pmkid;
@@ -637,13 +716,18 @@ int wpa_supplicant_init_wpa(struct wpa_supplicant *wpa_s)
 	ctx->send_ft_action = wpa_supplicant_send_ft_action;
 	ctx->mark_authenticated = wpa_supplicant_mark_authenticated;
 #endif /* CONFIG_IEEE80211R */
-
+	if(wpa_eapol_mem_init(wpa_s)){
+		
+		return -1;
+	}
 	wpa_s->wpa = wpa_sm_init(ctx);
 	if (wpa_s->wpa == NULL) {
+		wpa_eapol_mem_deinit(wpa_s);
 		wpa_printf(MSG_ERROR, "Failed to initialize WPA state "
 			   "machine");
 		return -1;
 	}
+
 #endif /* CONFIG_NO_WPA */
 
 	return 0;
