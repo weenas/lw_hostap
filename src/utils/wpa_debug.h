@@ -105,6 +105,8 @@ static inline void wpa_hexdump_buf_key(int level, const char *title,
 	wpa_hexdump_key(level, title, wpabuf_head(buf), wpabuf_len(buf));
 }
 
+#define wpa_hexdump_ascii(l,t,b,le) do { } while (0)
+#define wpa_hexdump_ascii_key(l,t,b,le) do { } while (0)
 /**
  * wpa_hexdump_ascii - conditional hex dump
  * @level: priority level (MSG_*) of the message
@@ -118,8 +120,8 @@ static inline void wpa_hexdump_buf_key(int level, const char *title,
  * the hex numbers and ASCII characters (for printable range) are shown. 16
  * bytes per line will be shown.
  */
-void wpa_hexdump_ascii(int level, const char *title, const u8 *buf,
-		       size_t len);
+/*void wpa_hexdump_ascii(int level, const char *title, const u8 *buf,
+		       size_t len);*/
 
 /**
  * wpa_hexdump_ascii_key - conditional hex dump, hide keys
@@ -135,8 +137,8 @@ void wpa_hexdump_ascii(int level, const char *title, const u8 *buf,
  * bytes per line will be shown. This works like wpa_hexdump_ascii(), but by
  * default, does not include secret keys (passwords, etc.) in debug output.
  */
-void wpa_hexdump_ascii_key(int level, const char *title, const u8 *buf,
-			   size_t len);
+/*void wpa_hexdump_ascii_key(int level, const char *title, const u8 *buf,
+			   size_t len);*/
 
 #endif /* CONFIG_NO_STDOUT_DEBUG */
 
