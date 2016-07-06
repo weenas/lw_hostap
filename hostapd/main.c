@@ -326,7 +326,6 @@ static void handle_dump_state(int sig, void *signal_ctx)
 
 static int hostapd_global_init(struct hapd_interfaces *interfaces)
 {
-	hostapd_logger_register_cb(hostapd_logger_cb);
 
 	/*if (eap_server_register_methods()) {
 		wpa_printf(MSG_ERROR, "Failed to register EAP methods");
@@ -338,10 +337,6 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces)
 		return -1;
 	}
 
-#ifndef CONFIG_NATIVE_WINDOWS
-	eloop_register_signal(SIGUSR1, handle_dump_state, interfaces);
-#endif /* CONFIG_NATIVE_WINDOWS */
-	eloop_register_signal_terminate(handle_term, interfaces);
 
 #ifndef CONFIG_NATIVE_WINDOWS
 	openlog("hostapd", 0, LOG_DAEMON);
