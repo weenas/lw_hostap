@@ -149,6 +149,12 @@ struct wpa_supplicant {
 	unsigned int wps_freq;
 	int wps_fragment_size;
 	int auto_reconnect_disabled;
+#define MAX_EAPOL_DATA  1600
+	u8 *eapol_send_buf;
+	u8 *eapol_receiv_buf;
+	u8 send_buf_use;
+	u8 receiv_buf_use;
+	
 };
 
 
