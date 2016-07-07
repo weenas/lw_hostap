@@ -287,7 +287,7 @@ CONFIG_OS=none
 # eloop = select() loop (default)
 # eloop_win = Windows events and WaitForMultipleObject() loop
 # eloop_none = Empty template
-CONFIG_ELOOP=eloop_none
+CONFIG_ELOOP=eloop_nuttx
 
 # Select layer 2 packet implementation
 # linux = Linux packet socket (default)
