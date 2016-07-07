@@ -196,7 +196,9 @@ void ap_free_sta(struct hostapd_data *hapd, struct sta_info *sta)
 	eloop_cancel_timeout(ap_handle_session_timer, hapd, sta);
 
 	/*ieee802_1x_free_station(sta);*/
+#ifndef CONFIG_NO_WPA
 	wpa_auth_sta_deinit(sta->wpa_sm);
+#endif /* CONFIG_NO_WPA */
 	rsn_preauth_free_station(hapd, sta);
 #ifndef CONFIG_NO_RADIUS
 	radius_client_flush_auth(hapd->radius, sta->addr);
@@ -231,10 +233,12 @@ void hostapd_free_stas(struct hostapd_data *hapd)
 
 	while (sta) {
 		prev = sta;
+#ifndef CONFIG_NO_WPA
 		if (sta->flags & WLAN_STA_AUTH) {
 			mlme_deauthenticate_indication(
 				hapd, sta, WLAN_REASON_UNSPECIFIED);
 		}
+#endif /* CONFIG_NO_WPA */
 		sta = sta->next;
 		wpa_printf(MSG_DEBUG, "Removing station " MACSTR,
 			   MAC2STR(prev->addr));
@@ -375,8 +379,10 @@ void ap_handle_timer(void *eloop_ctx, void *timeout_ctx)
 		sta->timeout_next = STA_DEAUTH;
 		eloop_register_timeout(AP_DEAUTH_DELAY, 0, ap_handle_timer,
 				       hapd, sta);
+#ifndef CONFIG_NO_WPA
 		mlme_disassociate_indication(
 			hapd, sta, WLAN_REASON_DISASSOC_DUE_TO_INACTIVITY);
+#endif /* CONFIG_NO_WPA */
 		break;
 	case STA_DEAUTH:
 	case STA_REMOVE:
@@ -386,9 +392,11 @@ void ap_handle_timer(void *eloop_ctx, void *timeout_ctx)
 		if (!sta->acct_terminate_cause)
 			sta->acct_terminate_cause =
 				RADIUS_ACCT_TERMINATE_CAUSE_IDLE_TIMEOUT;
+#ifndef CONFIG_NO_WPA
 		mlme_deauthenticate_indication(
 			hapd, sta,
 			WLAN_REASON_PREV_AUTH_NOT_VALID);
+#endif /* CONFIG_NO_WPA */
 		ap_free_sta(hapd, sta);
 		break;
 	}
@@ -404,8 +412,10 @@ static void ap_handle_session_timer(void *eloop_ctx, void *timeout_ctx)
 	if (!(sta->flags & WLAN_STA_AUTH))
 		return;
 
+#ifndef CONFIG_NO_WPA
 	mlme_deauthenticate_indication(hapd, sta,
 				       WLAN_REASON_PREV_AUTH_NOT_VALID);
+#endif /* CONFIG_NO_WPA */
 	hostapd_logger(hapd, sta->addr, HOSTAPD_MODULE_IEEE80211,
 		       HOSTAPD_LEVEL_INFO, "deauthenticated due to "
 		       "session timeout");
@@ -528,7 +538,9 @@ void ap_sta_disassociate(struct hostapd_data *hapd, struct sta_info *sta,
 	accounting_sta_stop(hapd, sta);
 	/*ieee802_1x_free_station(sta);*/
 
+#ifndef CONFIG_NO_WPA
 	mlme_disassociate_indication(hapd, sta, reason);
+#endif /* CONFIG_NO_WPA */
 }
 
 
@@ -546,7 +558,9 @@ void ap_sta_deauthenticate(struct hostapd_data *hapd, struct sta_info *sta,
 	accounting_sta_stop(hapd, sta);
 	/*ieee802_1x_free_station(sta);*/
 
+#ifndef CONFIG_NO_WPA
 	mlme_deauthenticate_indication(hapd, sta, reason);
+#endif /* CONFIG_NO_WPA */
 }
 
 

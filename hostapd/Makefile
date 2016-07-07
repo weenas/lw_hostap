@@ -40,21 +40,11 @@ OBJS += main.o
 #OBJS += config_file.o
 
 OBJS += ../src/ap/hostapd.o
-#OBJS += ../src/ap/wpa_auth_glue.o
 OBJS += ../src/ap/drv_callbacks.o
 OBJS += ../src/ap/ap_drv_ops.o
 OBJS += ../src/ap/utils.o
-OBJS += ../src/ap/authsrv.o
-#OBJS += ../src/ap/ieee802_1x.o
 OBJS += ../src/ap/ap_config.o
-OBJS += ../src/ap/ieee802_11_auth.o
 OBJS += ../src/ap/sta_info.o
-OBJS += ../src/ap/wpa_auth.o
-OBJS += ../src/ap/tkip_countermeasures.o
-OBJS += ../src/ap/ap_mlme.o
-OBJS += ../src/ap/wpa_auth_ie.o
-OBJS += ../src/ap/preauth_auth.o
-OBJS += ../src/ap/pmksa_cache_auth.o
 
 NEED_RC4=y
 NEED_AES=y
@@ -76,7 +66,7 @@ LIBS_c += -lbfd
 endif
 endif
 
-OBJS += ../src/utils/eloop.o
+OBJS += ../src/utils/eloop_none.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
 OBJS += ../src/utils/wpabuf.o
@@ -101,6 +91,7 @@ ifdef CONFIG_NO_RADIUS
 CFLAGS += -DCONFIG_NO_RADIUS
 CONFIG_NO_ACCOUNTING=y
 else
+OBJS += ../src/ap/ieee802_11_auth.o
 OBJS += ../src/radius/radius.o
 OBJS += ../src/radius/radius_client.o
 endif
@@ -729,6 +720,20 @@ endif
 
 ifdef CONFIG_NO_WPA_MSG
 CFLAGS += -DCONFIG_NO_WPA_MSG
+endif
+
+ifndef CONFIG_NO_WPA
+OBJS += ../src/ap/wpa_auth_glue.o
+OBJS += ../src/ap/ieee802_1x.o
+OBJS += ../src/ap/authsrv.o
+OBJS += ../src/ap/wpa_auth.o
+OBJS += ../src/ap/tkip_countermeasures.o
+OBJS += ../src/ap/ap_mlme.o
+OBJS += ../src/ap/wpa_auth_ie.o
+OBJS += ../src/ap/preauth_auth.o
+OBJS += ../src/ap/pmksa_cache_auth.o
+else
+CFLAGS += -DCONFIG_NO_WPA
 endif
 
 #ALL=hostapd hostapd_cli
