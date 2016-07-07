@@ -142,15 +142,19 @@ static void hostapd_cleanup(struct hostapd_data *hapd)
 	accounting_deinit(hapd);
 	/*hostapd_deinit_wpa(hapd);*/
 	vlan_deinit(hapd);
+#ifndef CONFIG_NO_RADIUS
 	hostapd_acl_deinit(hapd);
+#endif /* CONFIG_NO_RADIUS */
 #ifndef CONFIG_NO_RADIUS
 	radius_client_deinit(hapd->radius);
 	hapd->radius = NULL;
 #endif /* CONFIG_NO_RADIUS */
 
+#ifdef CONFIG_WPS
 	hostapd_deinit_wps(hapd);
+#endif /* CONFIG_WPS */
 
-	authsrv_deinit(hapd);
+	/*authsrv_deinit(hapd);*/
 
 	if (hapd->interface_added &&
 	    hostapd_if_remove(hapd, WPA_IF_AP_BSS, hapd->conf->iface)) {
@@ -477,10 +481,12 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 			   hapd->conf->ssid.ssid);
 	}
 
+#ifndef CONFIG_NO_WPA
 	if (hostapd_setup_wpa_psk(conf)) {
 		wpa_printf(MSG_ERROR, "WPA-PSK setup failed.");
 		return -1;
 	}
+#endif /* CONFIG_NO_WPA */
 
 	/* Set SSID for the kernel driver (to be used in beacon and probe
 	 * response frames) */
@@ -500,23 +506,29 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 	}
 #endif /* CONFIG_NO_RADIUS */
 
+#ifndef CONFIG_NO_RADIUS
 	if (hostapd_acl_init(hapd)) {
 		wpa_printf(MSG_ERROR, "ACL initialization failed.");
 		return -1;
 	}
+#endif /* CONFIG_NO_RADIUS */
+#ifdef CONFIG_WPS
 	if (hostapd_init_wps(hapd, conf))
 		return -1;
+#endif /* CONFIG_WPS */
 
-	if (authsrv_init(hapd) < 0)
-		return -1;
+	/*if (authsrv_init(hapd) < 0)
+		return -1;*/
 
 	/*if (ieee802_1x_init(hapd)) {
 		wpa_printf(MSG_ERROR, "IEEE 802.1X initialization failed.");
 		return -1;
-	}
+	}*/
 
+#ifndef CONFIG_NO_WPA
 	if (hapd->conf->wpa && hostapd_setup_wpa(hapd))
-		return -1;*/
+		return -1;
+#endif /* CONFIG_NO_WPA */
 
 	if (accounting_init(hapd)) {
 		wpa_printf(MSG_ERROR, "Accounting initialization failed.");
@@ -817,6 +829,7 @@ void hostapd_new_assoc_sta(struct hostapd_data *hapd, struct sta_info *sta,
 	if (!hapd->conf->ieee802_1x && !hapd->conf->wpa)
 		accounting_sta_start(hapd, sta);
 
+#ifndef CONFIG_NO_WPA
 	/* Start IEEE 802.1X authentication process for new stations */
 	/*ieee802_1x_new_station(hapd, sta);*/
 	if (reassoc) {
@@ -825,4 +838,5 @@ void hostapd_new_assoc_sta(struct hostapd_data *hapd, struct sta_info *sta,
 			wpa_auth_sm_event(sta->wpa_sm, WPA_REAUTH);
 	} else
 		wpa_auth_sta_associated(hapd->wpa_auth, sta->wpa_sm);
+#endif /* CONFIG_NO_WPA */
 }

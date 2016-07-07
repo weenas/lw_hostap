@@ -100,6 +100,7 @@ int hostapd_notif_assoc(struct hostapd_data *hapd, const u8 *addr,
 	}
 #endif /* CONFIG_P2P */
 
+#ifndef CONFIG_NO_WPA
 	if (hapd->conf->wpa) {
 		if (ie == NULL || ielen == 0) {
 			if (hapd->conf->wps_state) {
@@ -173,10 +174,13 @@ int hostapd_notif_assoc(struct hostapd_data *hapd, const u8 *addr,
 			sta->flags |= WLAN_STA_MAYBE_WPS;
 	}
 skip_wpa_check:
+#endif /* CONFIG_NO_WPA */
 
 	new_assoc = (sta->flags & WLAN_STA_ASSOC) == 0;
 	sta->flags |= WLAN_STA_AUTH | WLAN_STA_ASSOC;
+#ifndef CONFIG_NO_WPA
 	wpa_auth_sm_event(sta->wpa_sm, WPA_ASSOC);
+#endif /* CONFIG_NO_WPA */
 
 	hostapd_new_assoc_sta(hapd, sta, !new_assoc);
 
@@ -210,7 +214,9 @@ void hostapd_notif_disassoc(struct hostapd_data *hapd, const u8 *addr)
 	sta->flags &= ~(WLAN_STA_AUTH | WLAN_STA_ASSOC);
 	wpa_msg(hapd->msg_ctx, MSG_INFO, AP_STA_DISCONNECTED MACSTR,
 		MAC2STR(sta->addr));
+#ifndef CONFIG_NO_WPA
 	wpa_auth_sm_event(sta->wpa_sm, WPA_DISASSOC);
+#endif /* CONFIG_NO_WPA */
 	sta->acct_terminate_cause = RADIUS_ACCT_TERMINATE_CAUSE_USER_REQUEST;
 	/*ieee802_1x_notify_port_enabled(sta->eapol_sm, 0);*/
 	ap_free_sta(hapd, sta);
@@ -415,9 +421,11 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 	struct hostapd_data *hapd = ctx;
 
 	switch (event) {
+#ifndef CONFIG_NO_WPA
 	case EVENT_MICHAEL_MIC_FAILURE:
 		michael_mic_failure(hapd, data->michael_mic_failure.src, 1);
 		break;
+#endif /* CONFIG_NO_WPA */
 	case EVENT_SCAN_RESULTS:
 		if (hapd->iface->scan_cb)
 			hapd->iface->scan_cb(hapd->iface);
@@ -464,11 +472,13 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 	case EVENT_NEW_STA:
 		hostapd_event_new_sta(hapd, data->new_sta.addr);
 		break;
-	/*case EVENT_EAPOL_RX:
+#ifndef CONFIG_NO_WPA
+	case EVENT_EAPOL_RX:
 		hostapd_event_eapol_rx(hapd, data->eapol_rx.src,
 				       data->eapol_rx.data,
 				       data->eapol_rx.data_len);
-		break;*/
+		break;
+#endif /* CONFIG_NO_WPA */
 	case EVENT_ASSOC:
 		hostapd_notif_assoc(hapd, data->assoc_info.addr,
 				    data->assoc_info.req_ies,

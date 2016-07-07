@@ -40,21 +40,11 @@ OBJS += main.o
 #OBJS += config_file.o
 
 OBJS += ../src/ap/hostapd.o
-#OBJS += ../src/ap/wpa_auth_glue.o
 OBJS += ../src/ap/drv_callbacks.o
 OBJS += ../src/ap/ap_drv_ops.o
 OBJS += ../src/ap/utils.o
-OBJS += ../src/ap/authsrv.o
-#OBJS += ../src/ap/ieee802_1x.o
 OBJS += ../src/ap/ap_config.o
-OBJS += ../src/ap/ieee802_11_auth.o
 OBJS += ../src/ap/sta_info.o
-OBJS += ../src/ap/wpa_auth.o
-OBJS += ../src/ap/tkip_countermeasures.o
-OBJS += ../src/ap/ap_mlme.o
-OBJS += ../src/ap/wpa_auth_ie.o
-OBJS += ../src/ap/preauth_auth.o
-OBJS += ../src/ap/pmksa_cache_auth.o
 
 NEED_RC4=y
 NEED_AES=y
@@ -76,17 +66,14 @@ LIBS_c += -lbfd
 endif
 endif
 
-OBJS += ../src/utils/eloop.o
+OBJS += ../src/utils/eloop_none.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
 OBJS += ../src/utils/wpabuf.o
 OBJS += ../src/utils/os_$(CONFIG_OS).o
-OBJS += ../src/utils/ip_addr.o
 
 OBJS += ../src/common/ieee802_11_common.o
-OBJS += ../src/common/wpa_common.o
 
-#OBJS += ../src/eapol_auth/eapol_auth_sm.o
 
 
 ifndef CONFIG_NO_DUMP_STATE
@@ -101,6 +88,8 @@ ifdef CONFIG_NO_RADIUS
 CFLAGS += -DCONFIG_NO_RADIUS
 CONFIG_NO_ACCOUNTING=y
 else
+OBJS += ../src/ap/ieee802_11_auth.o
+OBJS += ../src/utils/ip_addr.o
 OBJS += ../src/radius/radius.o
 OBJS += ../src/radius/radius_client.o
 endif
@@ -124,7 +113,9 @@ OBJS += ctrl_iface.o
 OBJS += ../src/ap/ctrl_iface_ap.o
 endif
 
+ifndef CONFIG_NO_WPA
 OBJS += ../src/crypto/md5.o
+endif
 
 CFLAGS += -DCONFIG_CTRL_IFACE -DCONFIG_CTRL_IFACE_UNIX
 
@@ -180,7 +171,7 @@ else
 OBJS += ../src/l2_packet/l2_packet_linux.o
 endif
 else
-OBJS += ../src/l2_packet/l2_packet_none.o
+#OBJS += ../src/l2_packet/l2_packet_none.o
 endif
 
 
@@ -425,9 +416,9 @@ OBJS += ../src/eap_server/eap_server_tls_common.o
 NEED_TLS_PRF=y
 endif
 
-ifndef CONFIG_TLS
-CONFIG_TLS=openssl
-endif
+#ifndef CONFIG_TLS
+#CONFIG_TLS=openssl
+#endif
 
 ifeq ($(CONFIG_TLS), openssl)
 ifdef TLS_FUNCS
@@ -579,7 +570,7 @@ CONFIG_INTERNAL_RC4=y
 endif
 
 ifndef TLS_FUNCS
-OBJS += ../src/crypto/tls_none.o
+#OBJS += ../src/crypto/tls_none.o
 ifeq ($(CONFIG_TLS), internal)
 CONFIG_INTERNAL_AES=y
 CONFIG_INTERNAL_SHA1=y
@@ -620,8 +611,10 @@ ifdef CONFIG_INTERNAL_AES
 AESOBJS += ../src/crypto/aes-internal-dec.o
 endif
 endif
+ifndef CONFIG_NO_WPA
 ifdef NEED_AES
 OBJS += $(AESOBJS)
+endif
 endif
 
 ifdef NEED_SHA1
@@ -641,8 +634,10 @@ SHA1OBJS += ../src/crypto/sha1-tlsprf.o
 endif
 endif
 
+ifndef CONFIG_NO_WPA
 ifdef NEED_SHA1
 OBJS += $(SHA1OBJS)
+endif
 endif
 
 ifdef NEED_MD5
@@ -663,9 +658,11 @@ OBJS += ../src/crypto/des-internal.o
 endif
 endif
 
+ifndef CONFIG_NO_WPA
 ifdef NEED_RC4
 ifdef CONFIG_INTERNAL_RC4
 OBJS += ../src/crypto/rc4.o
+endif
 endif
 endif
 
@@ -729,6 +726,22 @@ endif
 
 ifdef CONFIG_NO_WPA_MSG
 CFLAGS += -DCONFIG_NO_WPA_MSG
+endif
+
+ifndef CONFIG_NO_WPA
+OBJS += ../src/ap/wpa_auth_glue.o
+OBJS += ../src/ap/ieee802_1x.o
+OBJS += ../src/ap/authsrv.o
+OBJS += ../src/ap/wpa_auth.o
+OBJS += ../src/ap/tkip_countermeasures.o
+OBJS += ../src/ap/ap_mlme.o
+OBJS += ../src/ap/wpa_auth_ie.o
+OBJS += ../src/ap/preauth_auth.o
+OBJS += ../src/ap/pmksa_cache_auth.o
+OBJS += ../src/eapol_auth/eapol_auth_sm.o
+OBJS += ../src/common/wpa_common.o
+else
+CFLAGS += -DCONFIG_NO_WPA
 endif
 
 #ALL=hostapd hostapd_cli
