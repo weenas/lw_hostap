@@ -207,6 +207,7 @@ static int hostapd_set_drv_ieee8021x(struct hostapd_data *hapd,
 }
 
 
+#ifndef CONFIG_NO_RADIUS
 static int hostapd_set_radius_acl_auth(struct hostapd_data *hapd,
 				       const u8 *mac, int accepted,
 				       u32 session_timeout)
@@ -226,6 +227,7 @@ static int hostapd_set_radius_acl_expire(struct hostapd_data *hapd,
 		return 0;
 	return hapd->driver->set_radius_acl_expire(hapd->drv_priv, mac);
 }
+#endif /* CONFIG_NO_RADIUS */
 
 
 static int hostapd_set_bss_params(struct hostapd_data *hapd,
@@ -410,8 +412,10 @@ void hostapd_set_driver_ops(struct hostapd_driver_ops *ops)
 	ops->sta_clear_stats = hostapd_sta_clear_stats;
 	ops->set_sta_flags = hostapd_set_sta_flags;
 	ops->set_drv_ieee8021x = hostapd_set_drv_ieee8021x;
+#ifndef CONFIG_NO_RADIUS
 	ops->set_radius_acl_auth = hostapd_set_radius_acl_auth;
 	ops->set_radius_acl_expire = hostapd_set_radius_acl_expire;
+#endif /* CONFIG_NO_RADIUS */
 	ops->set_bss_params = hostapd_set_bss_params;
 	ops->set_beacon = hostapd_set_beacon;
 	ops->vlan_if_add = hostapd_vlan_if_add;
