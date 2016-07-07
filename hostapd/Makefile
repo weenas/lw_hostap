@@ -171,7 +171,7 @@ else
 OBJS += ../src/l2_packet/l2_packet_linux.o
 endif
 else
-OBJS += ../src/l2_packet/l2_packet_none.o
+#OBJS += ../src/l2_packet/l2_packet_none.o
 endif
 
 
