@@ -297,6 +297,7 @@ static int hostapd_set_beacon(struct hostapd_data *hapd,
 }
 
 
+#ifndef CONFIG_NO_VLAN
 static int hostapd_vlan_if_add(struct hostapd_data *hapd, const char *ifname)
 {
 	char force_ifname[IFNAMSIZ];
@@ -310,6 +311,7 @@ static int hostapd_vlan_if_remove(struct hostapd_data *hapd,
 {
 	return hostapd_if_remove(hapd, WPA_IF_AP_VLAN, ifname);
 }
+#endif /* CONFIG_NO_VLAN */
 
 
 static int hostapd_set_wds_sta(struct hostapd_data *hapd, const u8 *addr,
@@ -321,6 +323,7 @@ static int hostapd_set_wds_sta(struct hostapd_data *hapd, const u8 *addr,
 }
 
 
+#ifndef CONFIG_NO_VLAN
 static int hostapd_set_sta_vlan(const char *ifname, struct hostapd_data *hapd,
 				const u8 *addr, int vlan_id)
 {
@@ -329,6 +332,7 @@ static int hostapd_set_sta_vlan(const char *ifname, struct hostapd_data *hapd,
 	return hapd->driver->set_sta_vlan(hapd->drv_priv, addr, ifname,
 					  vlan_id);
 }
+#endif /* CONFIG_NO_VLAN */
 
 
 static int hostapd_get_inact_sec(struct hostapd_data *hapd, const u8 *addr)
@@ -418,10 +422,14 @@ void hostapd_set_driver_ops(struct hostapd_driver_ops *ops)
 #endif /* CONFIG_NO_RADIUS */
 	ops->set_bss_params = hostapd_set_bss_params;
 	ops->set_beacon = hostapd_set_beacon;
+#ifndef CONFIG_NO_VLAN
 	ops->vlan_if_add = hostapd_vlan_if_add;
 	ops->vlan_if_remove = hostapd_vlan_if_remove;
+#endif /* CONFIG_NO_VLAN */
 	ops->set_wds_sta = hostapd_set_wds_sta;
+#ifndef CONFIG_NO_VLAN
 	ops->set_sta_vlan = hostapd_set_sta_vlan;
+#endif /* CONFIG_NO_VLAN */
 	ops->get_inact_sec = hostapd_get_inact_sec;
 	ops->sta_deauth = hostapd_sta_deauth;
 	ops->sta_disassoc = hostapd_sta_disassoc;
