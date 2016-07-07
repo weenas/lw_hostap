@@ -481,10 +481,12 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 			   hapd->conf->ssid.ssid);
 	}
 
+#ifndef CONFIG_NO_WPA
 	if (hostapd_setup_wpa_psk(conf)) {
 		wpa_printf(MSG_ERROR, "WPA-PSK setup failed.");
 		return -1;
 	}
+#endif /* CONFIG_NO_WPA */
 
 	/* Set SSID for the kernel driver (to be used in beacon and probe
 	 * response frames) */

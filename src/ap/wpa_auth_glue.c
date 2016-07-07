@@ -437,7 +437,6 @@ static void hostapd_rrb_receive(void *ctx, const u8 *src_addr, const u8 *buf,
 #endif /* CONFIG_IEEE80211R */
 
 
-#ifndef CONFIG_NO_WPA
 int hostapd_setup_wpa(struct hostapd_data *hapd)
 {
 	struct wpa_auth_config _conf;
@@ -544,4 +543,3 @@ void hostapd_deinit_wpa(struct hostapd_data *hapd)
 	l2_packet_deinit(hapd->l2);
 #endif /* CONFIG_IEEE80211R */
 }
-#endif /* CONFIG_NO_WPA */
