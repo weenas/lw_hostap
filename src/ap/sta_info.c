@@ -215,10 +215,12 @@ void ap_free_sta(struct hostapd_data *hapd, struct sta_info *sta)
 #ifdef CONFIG_P2P
 	p2p_group_notif_disassoc(hapd->p2p_group, sta->addr);
 #endif /* CONFIG_P2P */
-
+#ifdef CONFIG_WPS
 	wpabuf_free(sta->wps_ie);
+#ifdef COFNIG_P2P
 	wpabuf_free(sta->p2p_ie);
-
+#endif
+#endif
 	os_free(sta->ht_capabilities);
 
 	os_free(sta);
