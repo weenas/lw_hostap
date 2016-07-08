@@ -30,10 +30,12 @@ int wpa_supplicant_update_scan_results(struct wpa_supplicant *wpa_s);
 const u8 * wpa_scan_get_ie(const struct wpa_scan_res *res, u8 ie);
 const u8 * wpa_scan_get_vendor_ie(const struct wpa_scan_res *res,
 				  u32 vendor_type);
+#ifdef CONFIG_WPS
 struct wpabuf * wpa_scan_get_vendor_ie_multi(const struct wpa_scan_res *res,
 					     u32 vendor_type);
 struct wpabuf * wpa_scan_get_vendor_ie_multi_beacon(
 	const struct wpa_scan_res *res, u32 vendor_type);
+#endif
 void wpa_scan_results_free(struct wpa_scan_results *res);
 
 #endif /* SCAN_H */

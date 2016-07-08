@@ -216,8 +216,8 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 	struct wpa_supplicant *wpa_s = eloop_ctx;
 	struct wpa_ssid *ssid;
 	int scan_req = 0, ret;
-	struct wpabuf *wps_ie = NULL;
 #ifdef CONFIG_WPS
+	struct wpabuf *wps_ie = NULL;
 	int wps = 0;
 	enum wps_request_type req_type = WPS_REQ_ENROLLEE_INFO;
 #endif /* CONFIG_WPS */
@@ -376,8 +376,9 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 		wpa_s->conf, &params.num_filter_ssids);
 
 	ret = wpa_supplicant_trigger_scan(wpa_s, &params);
-
+#ifdef CONFIG_WPS
 	wpabuf_free(wps_ie);
+#endif
 	os_free(params.freqs);
 	os_free(params.filter_ssids);
 
@@ -515,7 +516,7 @@ const u8 * wpa_scan_get_vendor_ie(const struct wpa_scan_res *res,
 	return NULL;
 }
 
-
+#ifdef CONFIG_WPS
 struct wpabuf * wpa_scan_get_vendor_ie_multi(const struct wpa_scan_res *res,
 					     u32 vendor_type)
 {
@@ -545,7 +546,6 @@ struct wpabuf * wpa_scan_get_vendor_ie_multi(const struct wpa_scan_res *res,
 
 	return buf;
 }
-
 
 struct wpabuf * wpa_scan_get_vendor_ie_multi_beacon(
 	const struct wpa_scan_res *res, u32 vendor_type)
@@ -579,7 +579,7 @@ struct wpabuf * wpa_scan_get_vendor_ie_multi_beacon(
 
 	return buf;
 }
-
+#endif
 
 #ifdef CONFIG_SCAN_SORTING
 /* Compare function for sorting scan results. Return >0 if @b is considered

@@ -132,8 +132,6 @@ struct wpa_supplicant {
 	struct wps_er *wps_er;
 	int blacklist_cleared;
 
-	struct wpabuf *pending_eapol_rx;
-	struct os_time pending_eapol_rx_time;
 	u8 pending_eapol_rx_src[ETH_ALEN];
 
 	int set_sta_uapsd;
