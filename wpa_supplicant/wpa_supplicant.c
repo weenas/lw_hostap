@@ -325,9 +325,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 	wpa_supplicant_cancel_auth_timeout(wpa_s);
 
 	wpas_wps_deinit(wpa_s);
-
-	wpabuf_free(wpa_s->pending_eapol_rx);
-	wpa_s->pending_eapol_rx = NULL;
 }
 
 
@@ -1429,17 +1426,10 @@ void wpa_supplicant_rx_eapol(void *ctx, const u8 *src_addr,
 		 * through different paths from the driver. In order to avoid
 		 * issues in trying to process the EAPOL frame before receiving
 		 * association information, lets queue it for processing until
-		 * the association event is received.
+		 * the association event is received.  but here we do nothing in IOT
 		 */
 		wpa_printf(MSG_DEBUG, "Not associated - Delay processing of "
 			   "received EAPOL frame");
-		wpabuf_free(wpa_s->pending_eapol_rx);
-		wpa_s->pending_eapol_rx = wpabuf_alloc_copy(buf, len);
-		if (wpa_s->pending_eapol_rx) {
-			os_get_time(&wpa_s->pending_eapol_rx_time);
-			os_memcpy(wpa_s->pending_eapol_rx_src, src_addr,
-				  ETH_ALEN);
-		}
 		return;
 	}
 

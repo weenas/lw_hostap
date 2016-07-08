@@ -148,8 +148,10 @@ static int are_ies_equal(const struct wpa_bss *old,
 			 const struct wpa_scan_res *new, u32 ie)
 {
 	const u8 *old_ie, *new_ie;
+#ifdef CONFIG_WPS
 	struct wpabuf *old_ie_buff = NULL;
 	struct wpabuf *new_ie_buff = NULL;
+#endif
 	int new_ie_len, old_ie_len, ret, is_multi;
 
 	switch (ie) {
@@ -158,11 +160,13 @@ static int are_ies_equal(const struct wpa_bss *old,
 		new_ie = wpa_scan_get_vendor_ie(new, ie);
 		is_multi = 0;
 		break;
+#ifdef CONFIG_WPS
 	case WPS_IE_VENDOR_TYPE:
 		old_ie_buff = wpa_bss_get_vendor_ie_multi(old, ie);
 		new_ie_buff = wpa_scan_get_vendor_ie_multi(new, ie);
 		is_multi = 1;
 		break;
+#endif
 	case WLAN_EID_RSN:
 	case WLAN_EID_SUPP_RATES:
 	case WLAN_EID_EXT_SUPP_RATES:
@@ -174,7 +178,7 @@ static int are_ies_equal(const struct wpa_bss *old,
 		wpa_printf(MSG_DEBUG, "bss: %s: cannot compare IEs", __func__);
 		return 0;
 	}
-
+#ifdef CONFIG_WPS
 	if (is_multi) {
 		/* in case of multiple IEs stored in buffer */
 		old_ie = old_ie_buff ? wpabuf_head_u8(old_ie_buff) : NULL;
@@ -182,16 +186,19 @@ static int are_ies_equal(const struct wpa_bss *old,
 		old_ie_len = old_ie_buff ? wpabuf_len(old_ie_buff) : 0;
 		new_ie_len = new_ie_buff ? wpabuf_len(new_ie_buff) : 0;
 	} else {
+#endif
 		/* in case of single IE */
 		old_ie_len = old_ie ? old_ie[1] + 2 : 0;
 		new_ie_len = new_ie ? new_ie[1] + 2 : 0;
+#ifdef CONFIG_WPS
 	}
-
+#endif
 	ret = (old_ie_len == new_ie_len &&
 	       os_memcmp(old_ie, new_ie, old_ie_len) == 0);
-
+#ifdef CONFIG_WPS
 	wpabuf_free(old_ie_buff);
 	wpabuf_free(new_ie_buff);
+#endif
 
 	return ret;
 }
@@ -530,7 +537,7 @@ const u8 * wpa_bss_get_vendor_ie(const struct wpa_bss *bss, u32 vendor_type)
 	return NULL;
 }
 
-
+#ifdef CONFIG_WPS
 struct wpabuf * wpa_bss_get_vendor_ie_multi(const struct wpa_bss *bss,
 					    u32 vendor_type)
 {
@@ -561,7 +568,7 @@ struct wpabuf * wpa_bss_get_vendor_ie_multi(const struct wpa_bss *bss,
 	return buf;
 }
 
-
+#endif
 int wpa_bss_get_max_rate(const struct wpa_bss *bss)
 {
 	int rate = 0;
