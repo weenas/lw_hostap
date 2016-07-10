@@ -39,7 +39,7 @@ static int hostapd_sta_flags_to_drv(int flags)
 	return res;
 }
 
-
+#ifdef CONFIG_WPS
 static int hostapd_set_ap_wps_ie(struct hostapd_data *hapd)
 {
 	struct wpabuf *beacon, *proberesp, *assocresp = NULL;
@@ -99,10 +99,9 @@ static int hostapd_set_ap_wps_ie(struct hostapd_data *hapd)
 	wpabuf_free(proberesp);
 #endif /* CONFIG_P2P */
 	wpabuf_free(assocresp);
-
 	return ret;
 }
-
+#endif
 
 static int hostapd_send_mgmt_frame(struct hostapd_data *hapd, const void *msg,
 			   size_t len)
@@ -407,7 +406,9 @@ static int hostapd_set_countermeasures(struct hostapd_data *hapd, int enabled)
 
 void hostapd_set_driver_ops(struct hostapd_driver_ops *ops)
 {
+#ifdef CONFIG_WPS
 	ops->set_ap_wps_ie = hostapd_set_ap_wps_ie;
+#endif
 	ops->send_mgmt_frame = hostapd_send_mgmt_frame;
 	ops->send_eapol = hostapd_send_eapol;
 	ops->set_authorized = hostapd_set_authorized;

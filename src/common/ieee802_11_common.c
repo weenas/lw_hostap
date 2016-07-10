@@ -296,7 +296,7 @@ int ieee802_11_ie_count(const u8 *ies, size_t ies_len)
 	return count;
 }
 
-
+#ifdef CONFIG_WPS 
 struct wpabuf * ieee802_11_vendor_ie_concat(const u8 *ies, size_t ies_len,
 					    u32 oui_type)
 {
@@ -340,3 +340,4 @@ struct wpabuf * ieee802_11_vendor_ie_concat(const u8 *ies, size_t ies_len,
 
 	return buf;
 }
+#endif

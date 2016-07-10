@@ -103,9 +103,12 @@ struct sta_info {
 				* transaction identifiers */
 	struct os_time sa_query_start;
 #endif /* CONFIG_IEEE80211W */
-
+#ifdef CONFIG_WPS
 	struct wpabuf *wps_ie; /* WPS IE from (Re)Association Request */
+#ifdef CONFIG_P2P
 	struct wpabuf *p2p_ie; /* P2P IE from (Re)Association Request */
+#endif
+#endif
 };
 
 

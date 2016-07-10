@@ -69,7 +69,7 @@ endif
 OBJS += ../src/utils/eloop_none.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
-OBJS += ../src/utils/wpabuf.o
+#OBJS += ../src/utils/wpabuf.o
 OBJS += ../src/utils/os_$(CONFIG_OS).o
 
 OBJS += ../src/common/ieee802_11_common.o

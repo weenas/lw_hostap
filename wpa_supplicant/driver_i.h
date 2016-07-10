@@ -496,7 +496,7 @@ static inline int wpa_drv_signal_monitor(struct wpa_supplicant *wpa_s,
 						     threshold, hysteresis);
 	return -1;
 }
-
+#ifdef CONFIG_WPS
 static inline int wpa_drv_set_ap_wps_ie(struct wpa_supplicant *wpa_s,
 					const struct wpabuf *beacon,
 					const struct wpabuf *proberesp,
@@ -507,7 +507,7 @@ static inline int wpa_drv_set_ap_wps_ie(struct wpa_supplicant *wpa_s,
 	return wpa_s->driver->set_ap_wps_ie(wpa_s->drv_priv, beacon,
 					    proberesp, assocresp);
 }
-
+#endif
 static inline int wpa_drv_shared_freq(struct wpa_supplicant *wpa_s)
 {
 	if (!wpa_s->driver->shared_freq)
