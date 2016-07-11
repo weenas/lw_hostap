@@ -69,7 +69,6 @@ endif
 OBJS += ../src/utils/eloop_none.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
-#OBJS += ../src/utils/wpabuf.o
 OBJS += ../src/utils/os_$(CONFIG_OS).o
 
 OBJS += ../src/common/ieee802_11_common.o
@@ -294,6 +293,10 @@ ifdef CONFIG_WPS2
 CFLAGS += -DCONFIG_WPS2
 endif
 
+ifdef CONFIG_P2P
+CFLAGS += -DCONFIG_P2P
+endif
+
 CFLAGS += -DCONFIG_WPS -DEAP_SERVER_WSC
 OBJS += ../src/utils/uuid.o
 OBJS += ../src/ap/wps_hostapd.o
@@ -381,14 +384,6 @@ ifndef CONFIG_DRIVER_BSD
 LIBS += -ldl
 endif
 endif
-
-# Basic EAP functionality is needed for EAPOL
-#OBJS += eap_register.o
-#OBJS += ../src/eap_server/eap_server.o
-#OBJS += ../src/eap_common/eap_common.o
-#OBJS += ../src/eap_server/eap_server_methods.o
-#OBJS += ../src/eap_server/eap_server_identity.o
-#CFLAGS += -DEAP_SERVER_IDENTITY
 
 ifdef CONFIG_EAP
 CFLAGS += -DEAP_SERVER
@@ -740,6 +735,15 @@ OBJS += ../src/ap/preauth_auth.o
 OBJS += ../src/ap/pmksa_cache_auth.o
 OBJS += ../src/eapol_auth/eapol_auth_sm.o
 OBJS += ../src/common/wpa_common.o
+OBJS += ../src/utils/wpabuf.o
+# Basic EAP functionality is needed for EAPOL
+#OBJS += eap_register.o
+OBJS += ../src/eap_server/eap_server.o
+OBJS += ../src/eap_common/eap_common.o
+OBJS += ../src/eap_server/eap_server_methods.o
+#OBJS += ../src/eap_server/eap_server_identity.o
+#CFLAGS += -DEAP_SERVER_IDENTITY
+
 else
 CFLAGS += -DCONFIG_NO_WPA
 endif
