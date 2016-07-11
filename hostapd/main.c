@@ -351,7 +351,7 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces)
 }
 
 
-static void hostapd_global_deinit(const char *pid_file)
+static void hostapd_global_deinit(void)
 {
 #ifdef EAP_SERVER_TNC
 	tncs_global_deinit();
@@ -364,13 +364,10 @@ static void hostapd_global_deinit(const char *pid_file)
 #endif /* CONFIG_NATIVE_WINDOWS */
 
 	/*eap_server_unregister_methods();*/
-
-	os_daemonize_terminate(pid_file);
 }
 
 
-static int hostapd_global_run(struct hapd_interfaces *ifaces, int daemonize,
-			      const char *pid_file)
+static int hostapd_global_run(struct hapd_interfaces *ifaces)
 {
 #ifdef EAP_SERVER_TNC
 	int tnc = 0;
@@ -390,11 +387,6 @@ static int hostapd_global_run(struct hapd_interfaces *ifaces, int daemonize,
 		return -1;
 	}
 #endif /* EAP_SERVER_TNC */
-
-	if (daemonize && os_daemonize(pid_file)) {
-		perror("daemon");
-		return -1;
-	}
 
 	eloop_run();
 
@@ -439,48 +431,7 @@ int main(int argc, char *argv[])
 	struct hapd_interfaces interfaces;
 	int ret = 1;
 	size_t i;
-	int c, debug = 0, daemonize = 0;
-	char *pid_file = NULL;
-
-	if (os_program_init())
-		return -1;
-
-	for (;;) {
-		c = getopt(argc, argv, "BdhKP:tv");
-		if (c < 0)
-			break;
-		switch (c) {
-		case 'h':
-			usage();
-			break;
-		case 'd':
-			debug++;
-			if (wpa_debug_level > 0)
-				wpa_debug_level--;
-			break;
-		case 'B':
-			daemonize++;
-			break;
-		case 'K':
-			wpa_debug_show_keys++;
-			break;
-		case 'P':
-			os_free(pid_file);
-			pid_file = os_rel2abs_path(optarg);
-			break;
-		case 't':
-			wpa_debug_timestamp++;
-			break;
-		case 'v':
-			show_version();
-			exit(1);
-			break;
-
-		default:
-			usage();
-			break;
-		}
-	}
+	int debug = 0;
 
 	if (optind == argc)
 		usage();
@@ -505,7 +456,7 @@ int main(int argc, char *argv[])
 			goto out;
 	}
 
-	if (hostapd_global_run(&interfaces, daemonize, pid_file))
+	if (hostapd_global_run(&interfaces))
 		goto out;
 
 	ret = 0;
@@ -516,8 +467,7 @@ int main(int argc, char *argv[])
 		hostapd_interface_deinit_free(interfaces.iface[i]);
 	os_free(interfaces.iface);
 
-	hostapd_global_deinit(pid_file);
-	os_free(pid_file);
+	hostapd_global_deinit();
 
 	os_program_deinit();
 
