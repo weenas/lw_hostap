@@ -31,10 +31,6 @@ ifeq ($(CONFIG_OS), none)
 CFLAGS += -DOS_NO_C_LIB_DEFINES
 endif
 
-ifeq ($(CONFIG_OS), rtos)
-CFLAGS += -DOS_NO_C_LIB_DEFINES
-endif
-
 ifdef CONFIG_NATIVE_WINDOWS
 CFLAGS += -DCONFIG_NATIVE_WINDOWS
 LIBS += -lws2_32
@@ -69,7 +65,7 @@ LIBS_c += -lbfd
 endif
 endif
 
-OBJS += ../src/utils/eloop_none.o
+OBJS += ../src/utils/eloop_nuttx.o
 OBJS += ../src/utils/wpa_debug.o
 OBJS += ../src/utils/os_$(CONFIG_OS).o
 
