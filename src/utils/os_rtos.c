@@ -57,18 +57,6 @@ char * os_rel2abs_path(const char *rel_path)
 }
 
 
-int os_setenv(const char *name, const char *value, int overwrite)
-{
-	return -1;
-}
-
-
-int os_unsetenv(const char *name)
-{
-	return -1;
-}
-
-
 char * os_readfile(const char *name, size_t *len)
 {
 	return NULL;
@@ -197,8 +185,10 @@ char * os_strstr(const char *haystack, const char *needle)
 }
 
 
+#ifndef CONFIG_NO_WPA
 int os_snprintf(char *str, size_t size, const char *format, ...)
 {
 	return 0;
 }
+#endif /* CONFIG_NO_WPA */
 #endif /* OS_NO_C_LIB_DEFINES */
