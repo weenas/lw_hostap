@@ -123,8 +123,10 @@ void ap_free_sta(struct hostapd_data *hapd, struct sta_info *sta)
 
 	accounting_sta_stop(hapd, sta);
 
+#ifndef CONFIG_NO_VLAN
 	if (sta->flags & WLAN_STA_WDS)
 		hapd->drv.set_wds_sta(hapd, sta->addr, sta->aid, 0);
+#endif /* CONFIG_NO_VLAN */
 
 	if (!(sta->flags & WLAN_STA_PREAUTH))
 		hapd->drv.sta_remove(hapd, sta->addr);

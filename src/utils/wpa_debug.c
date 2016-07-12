@@ -365,10 +365,10 @@ void wpa_msg_ctrl(void *ctx, int level, const char *fmt, ...)
 #ifndef CONFIG_NO_HOSTAPD_LOGGER
 static hostapd_logger_cb_func hostapd_logger_cb = NULL;
 
-void hostapd_logger_register_cb(hostapd_logger_cb_func func)
+/*void hostapd_logger_register_cb(hostapd_logger_cb_func func)
 {
 	hostapd_logger_cb = func;
-}
+}*/
 
 
 void hostapd_logger(void *ctx, const u8 *addr, unsigned int module, int level,

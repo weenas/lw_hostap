@@ -145,18 +145,6 @@ struct hostapd_config * hostapd_config_defaults(void)
 }
 
 
-int hostapd_mac_comp(const void *a, const void *b)
-{
-	return os_memcmp(a, b, sizeof(macaddr));
-}
-
-
-int hostapd_mac_comp_empty(const void *a)
-{
-	macaddr empty = { 0 };
-	return os_memcmp(a, empty, sizeof(macaddr));
-}
-
 #ifndef CONFIG_NO_WPA
 static int hostapd_config_read_wpa_psk(const char *fname,
 				       struct hostapd_ssid *ssid)

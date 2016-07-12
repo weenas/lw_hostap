@@ -57,17 +57,6 @@ char * os_rel2abs_path(const char *rel_path)
 }
 
 
-int os_program_init(void)
-{
-	return 0;
-}
-
-
-void os_program_deinit(void)
-{
-}
-
-
 int os_setenv(const char *name, const char *value, int overwrite)
 {
 	return -1;
