@@ -112,6 +112,7 @@ static int hostapd_send_mgmt_frame(struct hostapd_data *hapd, const void *msg,
 }
 
 
+#ifndef CONFIG_NO_WPA
 static int hostapd_send_eapol(struct hostapd_data *hapd, const u8 *addr,
 			      const u8 *data, size_t data_len, int encrypt)
 {
@@ -121,6 +122,7 @@ static int hostapd_send_eapol(struct hostapd_data *hapd, const u8 *addr,
 					     data_len, encrypt,
 					     hapd->own_addr);
 }
+#endif /* CONFIG_NO_WPA */
 
 
 static int hostapd_set_authorized(struct hostapd_data *hapd,
@@ -187,6 +189,7 @@ static int hostapd_set_sta_flags(struct hostapd_data *hapd,
 }
 
 
+#ifndef CONFIG_NO_WPA
 static int hostapd_set_drv_ieee8021x(struct hostapd_data *hapd,
 				     const char *ifname, int enabled)
 {
@@ -204,6 +207,7 @@ static int hostapd_set_drv_ieee8021x(struct hostapd_data *hapd,
 	}
 	return hostapd_set_ieee8021x(hapd, &params);
 }
+#endif /* CONFIG_NO_WPA */
 
 
 #ifndef CONFIG_NO_RADIUS
@@ -310,7 +314,6 @@ static int hostapd_vlan_if_remove(struct hostapd_data *hapd,
 {
 	return hostapd_if_remove(hapd, WPA_IF_AP_VLAN, ifname);
 }
-#endif /* CONFIG_NO_VLAN */
 
 
 static int hostapd_set_wds_sta(struct hostapd_data *hapd, const u8 *addr,
@@ -322,7 +325,6 @@ static int hostapd_set_wds_sta(struct hostapd_data *hapd, const u8 *addr,
 }
 
 
-#ifndef CONFIG_NO_VLAN
 static int hostapd_set_sta_vlan(const char *ifname, struct hostapd_data *hapd,
 				const u8 *addr, int vlan_id)
 {
@@ -408,15 +410,19 @@ void hostapd_set_driver_ops(struct hostapd_driver_ops *ops)
 {
 #ifdef CONFIG_WPS
 	ops->set_ap_wps_ie = hostapd_set_ap_wps_ie;
-#endif
+#endif /* CONFIG_WPS */
 	ops->send_mgmt_frame = hostapd_send_mgmt_frame;
+#ifndef CONFIG_NO_WPA
 	ops->send_eapol = hostapd_send_eapol;
+#endif /* CONFIG_NO_WPA */
 	ops->set_authorized = hostapd_set_authorized;
 	ops->set_key = hostapd_set_key;
 	ops->read_sta_data = hostapd_read_sta_data;
 	ops->sta_clear_stats = hostapd_sta_clear_stats;
 	ops->set_sta_flags = hostapd_set_sta_flags;
+#ifndef CONFIG_NO_WPA
 	ops->set_drv_ieee8021x = hostapd_set_drv_ieee8021x;
+#endif /* CONFIG_NO_WPA */
 #ifndef CONFIG_NO_RADIUS
 	ops->set_radius_acl_auth = hostapd_set_radius_acl_auth;
 	ops->set_radius_acl_expire = hostapd_set_radius_acl_expire;
@@ -426,9 +432,7 @@ void hostapd_set_driver_ops(struct hostapd_driver_ops *ops)
 #ifndef CONFIG_NO_VLAN
 	ops->vlan_if_add = hostapd_vlan_if_add;
 	ops->vlan_if_remove = hostapd_vlan_if_remove;
-#endif /* CONFIG_NO_VLAN */
 	ops->set_wds_sta = hostapd_set_wds_sta;
-#ifndef CONFIG_NO_VLAN
 	ops->set_sta_vlan = hostapd_set_sta_vlan;
 #endif /* CONFIG_NO_VLAN */
 	ops->get_inact_sec = hostapd_get_inact_sec;
@@ -448,6 +452,7 @@ int hostapd_set_privacy(struct hostapd_data *hapd, int enabled)
 }
 
 
+#ifndef CONFIG_NO_WPA
 int hostapd_set_generic_elem(struct hostapd_data *hapd, const u8 *elem,
 			     size_t elem_len)
 {
@@ -455,6 +460,7 @@ int hostapd_set_generic_elem(struct hostapd_data *hapd, const u8 *elem,
 		return 0;
 	return hapd->driver->set_generic_elem(hapd->drv_priv, elem, elem_len);
 }
+#endif /* CONFIG_NO_WPA */
 
 
 int hostapd_get_ssid(struct hostapd_data *hapd, u8 *buf, size_t len)
@@ -473,6 +479,7 @@ int hostapd_set_ssid(struct hostapd_data *hapd, const u8 *buf, size_t len)
 }
 
 
+#ifndef CONFIG_NO_VLAN
 int hostapd_if_add(struct hostapd_data *hapd, enum wpa_driver_if_type type,
 		   const char *ifname, const u8 *addr, void *bss_ctx,
 		   void **drv_priv, char *force_ifname, u8 *if_addr)
@@ -491,8 +498,10 @@ int hostapd_if_remove(struct hostapd_data *hapd, enum wpa_driver_if_type type,
 		return -1;
 	return hapd->driver->if_remove(hapd->drv_priv, type, ifname);
 }
+#endif /* CONFIG_NO_VLAN */
 
 
+#ifndef CONFIG_NO_WPA
 int hostapd_set_ieee8021x(struct hostapd_data *hapd,
 			  struct wpa_bss_params *params)
 {
@@ -510,6 +519,7 @@ int hostapd_get_seqnum(const char *ifname, struct hostapd_data *hapd,
 	return hapd->driver->get_seqnum(ifname, hapd->drv_priv, addr, idx,
 					seq);
 }
+#endif /* CONFIG_NO_WPA */
 
 
 int hostapd_flush(struct hostapd_data *hapd)
@@ -664,6 +674,7 @@ int hostapd_drv_none(struct hostapd_data *hapd)
 }
 
 
+#ifdef NEED_AP_MLME
 int hostapd_driver_scan(struct hostapd_data *hapd,
 			struct wpa_driver_scan_params *params)
 {
@@ -680,8 +691,10 @@ struct wpa_scan_results * hostapd_driver_get_scan_results(
 		return hapd->driver->get_scan_results2(hapd->drv_priv);
 	return NULL;
 }
+#endif /* NEED_AP_MLME */
 
 
+#ifdef CONFIG_P2P
 int hostapd_driver_set_noa(struct hostapd_data *hapd, u8 count, int start,
 			   int duration)
 {
@@ -690,3 +703,4 @@ int hostapd_driver_set_noa(struct hostapd_data *hapd, u8 count, int start,
 					     duration);
 	return -1;
 }
+#endif /* CONFIG_P2P */

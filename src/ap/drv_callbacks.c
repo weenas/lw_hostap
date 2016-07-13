@@ -39,7 +39,7 @@ int hostapd_notif_assoc(struct hostapd_data *hapd, const u8 *addr,
 			const u8 *ie, size_t ielen)
 {
 	struct sta_info *sta;
-	int new_assoc, res;
+	int new_assoc;
 	struct ieee802_11_elems elems;
 #ifdef CONFIG_P2P
 	const u8 *all_ies = ie;
@@ -102,6 +102,8 @@ int hostapd_notif_assoc(struct hostapd_data *hapd, const u8 *addr,
 
 #ifndef CONFIG_NO_WPA
 	if (hapd->conf->wpa) {
+		int res;
+
 		if (ie == NULL || ielen == 0) {
 			if (hapd->conf->wps_state) {
 				wpa_printf(MSG_DEBUG, "STA did not include "
@@ -398,7 +400,8 @@ static int hostapd_event_new_sta(struct hostapd_data *hapd, const u8 *addr)
 }
 
 
-/*static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
+#ifndef CONFIG_NO_WPA
+static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
 				   const u8 *data, size_t data_len)
 {
 	struct hostapd_iface *iface = hapd->iface;
@@ -412,7 +415,8 @@ static int hostapd_event_new_sta(struct hostapd_data *hapd, const u8 *addr)
 	}
 
 	ieee802_1x_receive(hapd, src, data, data_len);
-}*/
+}
+#endif /* CONFIG_NO_WPA */
 
 
 void wpa_supplicant_event(void *ctx, enum wpa_event_type event,

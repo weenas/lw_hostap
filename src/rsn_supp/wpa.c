@@ -2341,6 +2341,7 @@ unsigned int wpa_sm_get_param(struct wpa_sm *sm, enum wpa_sm_conf_params param)
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 /**
  * wpa_sm_get_status - Get WPA state machine
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -2371,6 +2372,7 @@ int wpa_sm_get_status(struct wpa_sm *sm, char *buf, size_t buflen,
 	pos += ret;
 	return pos - buf;
 }
+#endif /* CONFIG_CTRL_IFACE */
 
 
 /**

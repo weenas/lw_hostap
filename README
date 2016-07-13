@@ -1,14 +1,6 @@
 lw_hostap
 ==============
 
-Copyright (c) 2016, Kelvin Cheung <keguang.zhang@gmail.com> and contributors
-All Rights Reserved.
-
-
-
-WHAT IS THIS?
--------------
-
 lw_hostap is a light weight implementation of WPA/WPA2 and targeted for RTOS,
 which origins from hostap.
 

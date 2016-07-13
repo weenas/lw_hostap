@@ -9,7 +9,7 @@
 # be modified from here. In most cass, these lines should use += in order not
 # to override previous values of the variables.
 
-CONFIG_OS=none
+CONFIG_OS=rtos
 CONFIG_NO_CTRL_IFACE=y
 CONFIG_NO_WPA=y
 

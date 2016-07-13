@@ -96,7 +96,7 @@ static int hostapd_broadcast_wep_set(struct hostapd_data *hapd)
 		errors++;
 	}
 
-	if (ssid->dyn_vlan_keys) {
+	/*if (ssid->dyn_vlan_keys) {
 		size_t i;
 		for (i = 0; i <= ssid->max_dyn_vlan_keys; i++) {
 			const char *ifname;
@@ -117,7 +117,7 @@ static int hostapd_broadcast_wep_set(struct hostapd_data *hapd)
 				errors++;
 			}
 		}
-	}
+	}*/
 
 	return errors;
 }
@@ -156,11 +156,11 @@ static void hostapd_cleanup(struct hostapd_data *hapd)
 
 	/*authsrv_deinit(hapd);*/
 
-	if (hapd->interface_added &&
+	/*if (hapd->interface_added &&
 	    hostapd_if_remove(hapd, WPA_IF_AP_BSS, hapd->conf->iface)) {
 		wpa_printf(MSG_WARNING, "Failed to remove BSS interface %s",
 			   hapd->conf->iface);
-	}
+	}*/
 
 	os_free(hapd->probereq_cb);
 	hapd->probereq_cb = NULL;
@@ -200,7 +200,6 @@ static void hostapd_cleanup_iface(struct hostapd_iface *iface)
 	os_free(iface->current_rates);
 	iface->current_rates = NULL;
 	ap_list_deinit(iface);
-	hostapd_config_free(iface->conf);
 	iface->conf = NULL;
 
 	os_free(iface->config_fname);
@@ -265,6 +264,19 @@ static int hostapd_flush_old_stations(struct hostapd_data *hapd)
 	}
 
 	return ret;
+}
+
+
+int hostapd_mac_comp(const void *a, const void *b)
+{
+	return os_memcmp(a, b, sizeof(macaddr));
+}
+
+
+int hostapd_mac_comp_empty(const void *a)
+{
+	macaddr empty = { 0 };
+	return os_memcmp(a, empty, sizeof(macaddr));
 }
 
 
@@ -374,7 +386,7 @@ skip_mask_ext:
 }
 
 
-static int mac_in_conf(struct hostapd_config *conf, const void *a)
+/*static int mac_in_conf(struct hostapd_config *conf, const void *a)
 {
 	size_t i;
 
@@ -385,7 +397,7 @@ static int mac_in_conf(struct hostapd_config *conf, const void *a)
 	}
 
 	return 0;
-}
+}*/
 
 
 
@@ -405,17 +417,17 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 	struct hostapd_bss_config *conf = hapd->conf;
 	u8 ssid[HOSTAPD_MAX_SSID_LEN + 1];
 	int ssid_len, set_ssid;
-	char force_ifname[IFNAMSIZ];
-	u8 if_addr[ETH_ALEN];
+	/*char force_ifname[IFNAMSIZ];*/
+	/*u8 if_addr[ETH_ALEN];*/
 
-	if (!first) {
+	/*if (!first) {
 		if (hostapd_mac_comp_empty(hapd->conf->bssid) == 0) {
-			/* Allocate the next available BSSID. */
+			[> Allocate the next available BSSID. <]
 			do {
 				inc_byte_array(hapd->own_addr, ETH_ALEN);
 			} while (mac_in_conf(hapd->iconf, hapd->own_addr));
 		} else {
-			/* Allocate the configured BSSID. */
+			[> Allocate the configured BSSID. <]
 			os_memcpy(hapd->own_addr, hapd->conf->bssid, ETH_ALEN);
 
 			if (hostapd_mac_comp(hapd->own_addr,
@@ -436,7 +448,7 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 				   MACSTR ")", MAC2STR(hapd->own_addr));
 			return -1;
 		}
-	}
+	}*/
 
 	hostapd_flush_old_stations(hapd);
 	hostapd_set_privacy(hapd, 0);
