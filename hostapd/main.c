@@ -193,16 +193,6 @@ hostapd_interface_init(struct hapd_interfaces *interfaces,
 }
 
 
-/**
- * handle_term - SIGINT and SIGTERM handler to terminate hostapd process
- */
-static void handle_term(int sig, void *signal_ctx)
-{
-	wpa_printf(MSG_DEBUG, "Signal %d received - terminating", sig);
-	eloop_terminate();
-}
-
-
 static int hostapd_global_init(struct hapd_interfaces *interfaces)
 {
 	/*hostapd_logger_register_cb(hostapd_logger_cb);*/
@@ -216,8 +206,6 @@ static int hostapd_global_init(struct hapd_interfaces *interfaces)
 		wpa_printf(MSG_ERROR, "Failed to initialize event loop");
 		return -1;
 	}
-
-	eloop_register_signal_terminate(handle_term, interfaces);
 
 	return 0;
 }

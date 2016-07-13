@@ -174,7 +174,7 @@ void wpa_hexdump_key(int level, const char *title, const u8 *buf, size_t len)
 	_wpa_hexdump(level, title, buf, len, wpa_debug_show_keys);
 }
 
-/*
+#if 0
 static void _wpa_hexdump_ascii(int level, const char *title, const u8 *buf,
 			       size_t len, int show)
 {
@@ -271,7 +271,6 @@ void wpa_hexdump_ascii_key(int level, const char *title, const u8 *buf,
 {
 	_wpa_hexdump_ascii(level, title, buf, len, wpa_debug_show_keys);
 }
-*/
 
 int wpa_debug_open_file(const char *path)
 {
@@ -301,6 +300,7 @@ void wpa_debug_close_file(void)
 	out_file = NULL;
 #endif /* CONFIG_DEBUG_FILE */
 }
+#endif
 
 #endif /* CONFIG_NO_STDOUT_DEBUG */
 
