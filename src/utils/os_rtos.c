@@ -23,20 +23,29 @@
 
 void os_sleep(os_time_t sec, os_time_t usec)
 {
+	if (sec)
+		sleep(sec);
+	if (usec)
+		usleep(usec);
 }
 
 
 int os_get_time(struct os_time *t)
 {
-	return -1;
+	int res;
+	struct timeval tv;
+	res = gettimeofday(&tv, NULL);
+	t->sec = tv.tv_sec;
+	t->usec = tv.tv_usec;
+	return res;
 }
 
 
-int os_mktime(int year, int month, int day, int hour, int min, int sec,
+/*int os_mktime(int year, int month, int day, int hour, int min, int sec,
 	      os_time_t *t)
 {
 	return -1;
-}
+}*/
 
 
 int os_get_random(unsigned char *buf, size_t len)
@@ -51,21 +60,34 @@ unsigned long os_random(void)
 }
 
 
-char * os_rel2abs_path(const char *rel_path)
-{
-	return NULL; /* strdup(rel_path) can be used here */
-}
-
-
-char * os_readfile(const char *name, size_t *len)
-{
-	return NULL;
-}
-
-
 void * os_zalloc(size_t size)
 {
-	return NULL;
+	return calloc(1, size);
+}
+
+
+size_t os_strlcpy(char *dest, const char *src, size_t siz)
+{
+	const char *s = src;
+	size_t left = siz;
+
+	if (left) {
+		/* Copy string up to the maximum size of the dest buffer */
+		while (--left != 0) {
+			if ((*dest++ = *s++) == '\0')
+				break;
+		}
+	}
+
+	if (left == 0) {
+		/* Not enough room for the string; force NUL-termination */
+		if (siz != 0)
+			*dest = '\0';
+		while (*s++)
+			; /* determine total src string length */
+	}
+
+	return s - src - 1;
 }
 
 
@@ -114,12 +136,6 @@ int os_memcmp(const void *s1, const void *s2, size_t n)
 char * os_strdup(const char *s)
 {
 	return NULL;
-}
-
-
-size_t os_strlen(const char *s)
-{
-	return 0;
 }
 
 
@@ -185,10 +201,8 @@ char * os_strstr(const char *haystack, const char *needle)
 }
 
 
-#ifndef CONFIG_NO_WPA
 int os_snprintf(char *str, size_t size, const char *format, ...)
 {
 	return 0;
 }
-#endif /* CONFIG_NO_WPA */
 #endif /* OS_NO_C_LIB_DEFINES */
