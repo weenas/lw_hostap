@@ -205,26 +205,6 @@ int eloop_is_timeout_registered(eloop_timeout_handler handler,
 }
 
 
-#ifndef CONFIG_NATIVE_WINDOWS
-static void eloop_handle_alarm(int sig)
-{
-	wpa_printf(MSG_ERROR, "eloop: could not process SIGINT or SIGTERM in "
-		   "two seconds. Looks like there\n"
-		   "is a bug that ends up in a busy loop that "
-		   "prevents clean shutdown.\n"
-		   "Killing program forcefully.\n");
-	exit(1);
-}
-#endif /* CONFIG_NATIVE_WINDOWS */
-
-
-int eloop_register_signal_reconfig(eloop_signal_handler handler,
-				   void *user_data)
-{
-	return 0;
-}
-
-
 void eloop_run(void)
 {
 	struct timeval _tv;

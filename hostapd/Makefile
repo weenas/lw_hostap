@@ -65,7 +65,7 @@ LIBS_c += -lbfd
 endif
 endif
 
-OBJS += ../src/utils/eloop_nuttx.o
+OBJS += ../src/utils/eloop_rtos.o
 OBJS += ../src/utils/wpa_debug.o
 OBJS += ../src/utils/os_$(CONFIG_OS).o
 
