@@ -207,7 +207,6 @@ struct hostapd_data {
  * struct hostapd_iface - hostapd per-interface data structure
  */
 struct hostapd_iface {
-	struct hapd_interfaces *interfaces;
 	void *owner;
 	int (*reload_config)(struct hostapd_iface *iface);
 	struct hostapd_config * (*config_read_cb)(const char *config_fname);
@@ -263,9 +262,6 @@ struct hostapd_iface {
 	int (*ctrl_iface_init)(struct hostapd_data *hapd);
 	void (*ctrl_iface_deinit)(struct hostapd_data *hapd);
 
-	int (*for_each_interface)(struct hapd_interfaces *interfaces,
-				  int (*cb)(struct hostapd_iface *iface,
-					    void *ctx), void *ctx);
 };
 
 /* hostapd.c */

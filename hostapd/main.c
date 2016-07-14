@@ -28,29 +28,7 @@ extern int wpa_debug_level;
 extern int wpa_debug_show_keys;
 extern int wpa_debug_timestamp;
 
-
-struct hapd_interfaces {
-	size_t count;
-	struct hostapd_iface **iface;
-};
-
-
-static int hostapd_for_each_interface(struct hapd_interfaces *interfaces,
-				      int (*cb)(struct hostapd_iface *iface,
-						void *ctx), void *ctx)
-{
-	size_t i;
-	int ret;
-
-	for (i = 0; i < interfaces->count; i++) {
-		ret = cb(interfaces->iface[i], ctx);
-		if (ret)
-			return ret;
-	}
-
-	return 0;
-}
-
+struct hostapd_iface * g_hostapd_iface = NULL;
 
 /**
  * hostapd_init - Allocate and initialize per-interface data
@@ -71,8 +49,6 @@ static struct hostapd_iface * hostapd_init(const char *config_file)
 	hapd_iface = os_zalloc(sizeof(*hapd_iface));
 	if (hapd_iface == NULL)
 		goto fail;
-
-	hapd_iface->for_each_interface = hostapd_for_each_interface;
 
 	hapd_iface->num_bss = HOSTAPD_NUM_BSS;
 	hapd_iface->bss = os_zalloc(hapd_iface->num_bss *
@@ -166,8 +142,7 @@ static void hostapd_interface_deinit_free(struct hostapd_iface *iface)
 
 
 static struct hostapd_iface *
-hostapd_interface_init(struct hapd_interfaces *interfaces,
-		       const char *config_fname, int debug)
+hostapd_interface_init(const char *config_fname, int debug)
 {
 	struct hostapd_iface *iface;
 	int k;
@@ -176,7 +151,6 @@ hostapd_interface_init(struct hapd_interfaces *interfaces,
 	iface = hostapd_init(config_fname);
 	if (!iface)
 		return NULL;
-	iface->interfaces = interfaces;
 
 	for (k = 0; k < debug; k++) {
 		if (iface->bss[0]->conf->logger_stdout_level > 0)
@@ -193,7 +167,7 @@ hostapd_interface_init(struct hapd_interfaces *interfaces,
 }
 
 
-static int hostapd_global_init(struct hapd_interfaces *interfaces)
+static int hostapd_global_init(struct hostapd_iface  *interface)
 {
 	/*hostapd_logger_register_cb(hostapd_logger_cb);*/
 
@@ -223,18 +197,16 @@ static void hostapd_global_deinit(void)
 }
 
 
-static int hostapd_global_run(struct hapd_interfaces *ifaces)
+static int hostapd_global_run(struct hostapd_iface *ifaces)
 {
 #ifdef EAP_SERVER_TNC
 	int tnc = 0;
 	size_t i, k;
 
-	for (i = 0; !tnc && i < ifaces->count; i++) {
-		for (k = 0; k < ifaces->iface[i]->num_bss; k++) {
-			if (ifaces->iface[i]->bss[0]->conf->tnc) {
-				tnc++;
-				break;
-			}
+	for (k = 0; k < ifaces->iface[i]->num_bss; k++) {
+		if (ifaces->iface[i]->bss[0]->conf->tnc) {
+			tnc++;
+			break;
 		}
 	}
 
@@ -252,41 +224,29 @@ static int hostapd_global_run(struct hapd_interfaces *ifaces)
 
 int main(int argc, char *argv[])
 {
-	struct hapd_interfaces interfaces;
 	int ret = 1;
 	size_t i;
 	int debug = 0;
 
-	interfaces.count = argc - optind;
-	interfaces.iface = os_malloc(interfaces.count *
-				     sizeof(struct hostapd_iface *));
-	if (interfaces.iface == NULL) {
-		wpa_printf(MSG_ERROR, "malloc failed\n");
-		return -1;
-	}
-
-	if (hostapd_global_init(&interfaces))
+	if (hostapd_global_init(g_hostapd_iface))
 		return -1;
 
 	/* Initialize interfaces */
-	for (i = 0; i < interfaces.count; i++) {
-		interfaces.iface[i] = hostapd_interface_init(&interfaces,
-							     argv[optind + i],
-							     debug);
-		if (!interfaces.iface[i])
-			goto out;
-	}
 
-	if (hostapd_global_run(&interfaces))
+	g_hostapd_iface = hostapd_interface_init(NULL, debug);
+
+
+	if (hostapd_global_run(g_hostapd_iface))
 		goto out;
 
 	ret = 0;
 
  out:
 	/* Deinitialize all interfaces */
-	for (i = 0; i < interfaces.count; i++)
-		hostapd_interface_deinit_free(interfaces.iface[i]);
-	os_free(interfaces.iface);
+	
+	hostapd_interface_deinit_free(g_hostapd_iface);
+	os_free(g_hostapd_iface);
+	g_hostapd_iface = NULL;
 
 	hostapd_global_deinit();
 
