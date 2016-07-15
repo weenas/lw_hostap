@@ -281,7 +281,7 @@ CONFIG_MAIN=main_none
 # unix = UNIX/POSIX like systems (default)
 # win32 = Windows systems
 # none = Empty template
-CONFIG_OS=none
+CONFIG_OS=rtos
 
 # Select event loop implementation
 # eloop = select() loop (default)

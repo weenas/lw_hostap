@@ -190,6 +190,7 @@ static int wpa_supplicant_dynamic_keys(struct wpa_supplicant *wpa_s)
 }
 
 
+#ifdef IEEE8021X_EAPOL
 /**
  * wpa_supplicant_scard_init - Initialize SIM/USIM access with PC/SC
  * @wpa_s: pointer to wpa_supplicant data
@@ -257,6 +258,7 @@ int wpa_supplicant_scard_init(struct wpa_supplicant *wpa_s,
 
 	return 0;
 }
+#endif /* IEEE8021X_EAPOL */
 
 
 #ifndef CONFIG_NO_SCAN_PROCESSING

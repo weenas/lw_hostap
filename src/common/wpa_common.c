@@ -570,6 +570,7 @@ void wpa_pmk_r1_to_ptk(const u8 *pmk_r1, const u8 *snonce, const u8 *anonce,
 #endif /* CONFIG_IEEE80211R */
 
 
+#if defined(IEEE8021X_EAPOL) && !defined(CONFIG_NO_WPA2)
 /**
  * rsn_pmkid - Calculate PMK identifier
  * @pmk: Pairwise master key
@@ -602,6 +603,7 @@ void rsn_pmkid(const u8 *pmk, size_t pmk_len, const u8 *aa, const u8 *spa,
 		hmac_sha1_vector(pmk, pmk_len, 3, addr, len, hash);
 	os_memcpy(pmkid, hash, PMKID_LEN);
 }
+#endif /* IEEE8021X_EAPOL and !CONFIG_NO_WPA2 */
 
 
 /**
@@ -630,6 +632,7 @@ const char * wpa_cipher_txt(int cipher)
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 /**
  * wpa_key_mgmt_txt - Convert key management suite to a text string
  * @key_mgmt: Key management suite (WPA_KEY_MGMT_* enum)
@@ -669,6 +672,7 @@ const char * wpa_key_mgmt_txt(int key_mgmt, int proto)
 		return "UNKNOWN";
 	}
 }
+#endif /* CONFIG_CTRL_IFACE */
 
 
 int wpa_compare_rsn_ie(int ft_initial_assoc,

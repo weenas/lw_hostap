@@ -1477,6 +1477,7 @@ static int wpa_supplicant_decrypt_key_data(struct wpa_sm *sm,
 }
 
 
+#ifdef IEEE8021X_EAPOL
 /**
  * wpa_sm_aborted_cached - Notify WPA that PMKSA caching was aborted
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -1488,6 +1489,7 @@ void wpa_sm_aborted_cached(struct wpa_sm *sm)
 		sm->cur_pmksa = NULL;
 	}
 }
+#endif /* IEEE8021X_EAPOL */
 
 
 static void wpa_eapol_key_dump(const struct wpa_eapol_key *key)
@@ -2132,6 +2134,7 @@ void wpa_sm_set_pmk_from_pmksa(struct wpa_sm *sm)
 }
 
 
+#if 0
 /**
  * wpa_sm_set_fast_reauth - Set fast reauthentication (EAP) enabled/disabled
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -2142,8 +2145,10 @@ void wpa_sm_set_fast_reauth(struct wpa_sm *sm, int fast_reauth)
 	if (sm)
 		sm->fast_reauth = fast_reauth;
 }
+#endif
 
 
+#ifdef IEEE8021X_EAPOL
 /**
  * wpa_sm_set_scard_ctx - Set context pointer for smartcard callbacks
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -2156,6 +2161,7 @@ void wpa_sm_set_scard_ctx(struct wpa_sm *sm, void *scard_ctx)
 	if (sm->preauth_eapol)
 		eapol_sm_register_scard_ctx(sm->preauth_eapol, scard_ctx);
 }
+#endif /* IEEE8021X_EAPOL */
 
 
 /**
@@ -2303,6 +2309,7 @@ int wpa_sm_set_param(struct wpa_sm *sm, enum wpa_sm_conf_params param,
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 /**
  * wpa_sm_get_param - Get WPA state machine parameters
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -2341,7 +2348,6 @@ unsigned int wpa_sm_get_param(struct wpa_sm *sm, enum wpa_sm_conf_params param)
 }
 
 
-#ifdef CONFIG_CTRL_IFACE
 /**
  * wpa_sm_get_status - Get WPA state machine
  * @sm: Pointer to WPA state machine data from wpa_sm_init()
@@ -2541,6 +2547,7 @@ int wpa_sm_parse_own_wpa_ie(struct wpa_sm *sm, struct wpa_ie_data *data)
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 int wpa_sm_pmksa_cache_list(struct wpa_sm *sm, char *buf, size_t len)
 {
 #ifndef CONFIG_NO_WPA2
@@ -2560,11 +2567,14 @@ void wpa_sm_drop_sa(struct wpa_sm *sm)
 	os_memset(&sm->ptk, 0, sizeof(sm->ptk));
 	os_memset(&sm->tptk, 0, sizeof(sm->tptk));
 }
+#endif /* CONFIG_CTRL_IFACE */
 
 
+#ifdef CONFIG_IEEE80211R
 int wpa_sm_has_ptk(struct wpa_sm *sm)
 {
 	if (sm == NULL)
 		return 0;
 	return sm->ptk_set;
 }
+#endif /* CONFIG_IEEE80211R */

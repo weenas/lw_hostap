@@ -300,9 +300,6 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 
 
 	if (wpa_s->conf != NULL) {
-		struct wpa_ssid *ssid;
-		for (ssid = wpa_s->conf->ssid; ssid; ssid = ssid->next)
-			wpas_notify_network_removed(wpa_s, ssid);
 		/*wpa_config_free(wpa_s->conf);*/
 		wpa_s->conf = NULL;
 	}
@@ -452,30 +449,6 @@ void wpa_supplicant_set_state(struct wpa_supplicant *wpa_s,
 
 	if (wpa_s->wpa_state != old_state)
 		wpas_notify_state_changed(wpa_s, wpa_s->wpa_state, old_state);
-}
-
-
-void wpa_supplicant_terminate_proc(struct wpa_supplicant *wpa_s)
-{
-	int pending = 0;
-#ifdef CONFIG_WPS
-	while (wpa_s) {
-		if (wpas_wps_terminate_pending(wpa_s) == 1)
-			pending = 1;
-		wpa_s = wpa_s->next;
-	}
-#endif /* CONFIG_WPS */
-	if (pending)
-		return;
-	eloop_terminate();
-}
-
-
-static void wpa_supplicant_terminate(int sig, void *signal_ctx)
-{
-	struct wpa_supplicant *wpa_s = signal_ctx;
-
-	wpa_supplicant_terminate_proc(wpa_s);
 }
 
 
@@ -1126,6 +1099,7 @@ void wpa_supplicant_deauthenticate(struct wpa_supplicant *wpa_s,
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 /**
  * wpa_supplicant_enable_network - Mark a configured network as enabled
  * @wpa_s: wpa_supplicant structure for a network interface
@@ -1261,46 +1235,7 @@ void wpa_supplicant_select_network(struct wpa_supplicant *wpa_s,
 	if (ssid)
 		wpas_notify_network_selected(wpa_s, ssid);
 }
-
-/**
- * wpa_supplicant_set_debug_params - Set global debug params
- * @global: wpa_global structure
- * @debug_level: debug level
- * @debug_timestamp: determines if show timestamp in debug data
- * @debug_show_keys: determines if show keys in debug data
- * Returns: 0 if succeed or -1 if debug_level has wrong value
- */
-int wpa_supplicant_set_debug_params(struct wpa_supplicant *wpa_s, int debug_level,
-				    int debug_timestamp, int debug_show_keys)
-{
-
-	int old_level, old_timestamp, old_show_keys;
-
-	/* check for allowed debuglevels */
-	if (debug_level != MSG_MSGDUMP &&
-	    debug_level != MSG_DEBUG &&
-	    debug_level != MSG_INFO &&
-	    debug_level != MSG_WARNING &&
-	    debug_level != MSG_ERROR)
-		return -1;
-
-	old_level = wpa_debug_level;
-	old_timestamp = wpa_debug_timestamp;
-	old_show_keys = wpa_debug_show_keys;
-
-	wpa_debug_level = debug_level;
-	wpa_debug_timestamp = debug_timestamp ? 1 : 0;
-	wpa_debug_show_keys = debug_show_keys ? 1 : 0;
-
-	if (wpa_debug_level != old_level)
-		wpas_notify_debug_level_changed(wpa_s);
-	if (wpa_debug_timestamp != old_timestamp)
-		wpas_notify_debug_timestamp_changed(wpa_s);
-	if (wpa_debug_show_keys != old_show_keys)
-		wpas_notify_debug_show_keys_changed(wpa_s);
-
-	return 0;
-}
+#endif /* CONFIG_CTRL_IFACE */
 
 
 /**
@@ -1579,7 +1514,6 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s)
 		return -1;
 
 	wpa_sm_set_ifname(wpa_s->wpa, wpa_s->ifname);
-
 
 	if (wpa_drv_get_capa(wpa_s, &capa) == 0) {
 		wpa_s->drv_flags = capa.flags;
