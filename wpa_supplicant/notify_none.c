@@ -94,6 +94,7 @@ void wpas_notify_scan_results(struct wpa_supplicant *wpa_s)
 }
 
 
+#ifdef CONFIG_WPS
 void wpas_notify_wps_credential(struct wpa_supplicant *wpa_s,
 				const struct wps_credential *cred)
 {
@@ -127,6 +128,7 @@ void wpas_notify_network_removed(struct wpa_supplicant *wpa_s,
 				 struct wpa_ssid *ssid)
 {
 }
+#endif /* CONFIG_WPS */
 
 
 void wpas_notify_bss_added(struct wpa_supplicant *wpa_s,
@@ -195,6 +197,7 @@ void wpas_notify_bss_rates_changed(struct wpa_supplicant *wpa_s,
 }
 
 
+#if 0
 void wpas_notify_blob_added(struct wpa_supplicant *wpa_s, const char *name)
 {
 }
@@ -228,3 +231,4 @@ void wpas_notify_suspend(struct wpa_supplicant *wpa_s)
 void wpas_notify_resume(struct wpa_supplicant *wpa_s)
 {
 }
+#endif

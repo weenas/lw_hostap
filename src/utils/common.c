@@ -166,6 +166,7 @@ void wpa_get_ntp_timestamp(u8 *buf)
 }
 
 
+#ifdef CONFIG_WPS
 static inline int _wpa_snprintf_hex(char *buf, size_t buf_size, const u8 *data,
 				    size_t len, int uppercase)
 {
@@ -214,6 +215,7 @@ int wpa_snprintf_hex_uppercase(char *buf, size_t buf_size, const u8 *data,
 {
 	return _wpa_snprintf_hex(buf, buf_size, data, len, 1);
 }
+#endif /* CONFIG_WPS */
 
 
 #ifdef CONFIG_ANSI_C_EXTRA

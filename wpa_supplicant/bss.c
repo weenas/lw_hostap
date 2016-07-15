@@ -488,6 +488,7 @@ struct wpa_bss * wpa_bss_get_bssid(struct wpa_supplicant *wpa_s,
 }
 
 
+#ifdef CONFIG_CTRL_IFACE
 struct wpa_bss * wpa_bss_get_id(struct wpa_supplicant *wpa_s, unsigned int id)
 {
 	struct wpa_bss *bss;
@@ -497,6 +498,7 @@ struct wpa_bss * wpa_bss_get_id(struct wpa_supplicant *wpa_s, unsigned int id)
 	}
 	return NULL;
 }
+#endif /* CONFIG_CTRL_IFACE */
 
 
 const u8 * wpa_bss_get_ie(const struct wpa_bss *bss, u8 ie)
@@ -537,6 +539,7 @@ const u8 * wpa_bss_get_vendor_ie(const struct wpa_bss *bss, u32 vendor_type)
 	return NULL;
 }
 
+
 #ifdef CONFIG_WPS
 struct wpabuf * wpa_bss_get_vendor_ie_multi(const struct wpa_bss *bss,
 					    u32 vendor_type)
@@ -567,52 +570,4 @@ struct wpabuf * wpa_bss_get_vendor_ie_multi(const struct wpa_bss *bss,
 
 	return buf;
 }
-
 #endif
-int wpa_bss_get_max_rate(const struct wpa_bss *bss)
-{
-	int rate = 0;
-	const u8 *ie;
-	int i;
-
-	ie = wpa_bss_get_ie(bss, WLAN_EID_SUPP_RATES);
-	for (i = 0; ie && i < ie[1]; i++) {
-		if ((ie[i + 2] & 0x7f) > rate)
-			rate = ie[i + 2] & 0x7f;
-	}
-
-	ie = wpa_bss_get_ie(bss, WLAN_EID_EXT_SUPP_RATES);
-	for (i = 0; ie && i < ie[1]; i++) {
-		if ((ie[i + 2] & 0x7f) > rate)
-			rate = ie[i + 2] & 0x7f;
-	}
-
-	return rate;
-}
-
-
-int wpa_bss_get_bit_rates(const struct wpa_bss *bss, u8 **rates)
-{
-	const u8 *ie, *ie2;
-	int i, j;
-	unsigned int len;
-	u8 *r;
-
-	ie = wpa_bss_get_ie(bss, WLAN_EID_SUPP_RATES);
-	ie2 = wpa_bss_get_ie(bss, WLAN_EID_EXT_SUPP_RATES);
-
-	len = (ie ? ie[1] : 0) + (ie2 ? ie2[1] : 0);
-
-	r = os_malloc(len);
-	if (!r)
-		return -1;
-
-	for (i = 0; ie && i < ie[1]; i++)
-		r[i] = ie[i + 2] & 0x7f;
-
-	for (j = 0; ie2 && j < ie2[1]; j++)
-		r[i + j] = ie2[j + 2] & 0x7f;
-
-	*rates = r;
-	return len;
-}

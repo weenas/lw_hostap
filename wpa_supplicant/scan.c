@@ -455,6 +455,7 @@ void wpa_supplicant_notify_scanning(struct wpa_supplicant *wpa_s,
 }
 
 
+#ifdef CONFIG_SCAN_SORTING
 static int wpa_scan_get_max_rate(const struct wpa_scan_res *res)
 {
 	int rate = 0;
@@ -475,6 +476,7 @@ static int wpa_scan_get_max_rate(const struct wpa_scan_res *res)
 
 	return rate;
 }
+#endif /* CONFIG_SCAN_SORTING */
 
 
 const u8 * wpa_scan_get_ie(const struct wpa_scan_res *res, u8 ie)

@@ -94,6 +94,7 @@ size_t os_strlcpy(char *dest, const char *src, size_t siz)
 #ifdef OS_NO_C_LIB_DEFINES
 void * os_malloc(size_t size)
 {
+#error shit
 	return NULL;
 }
 
