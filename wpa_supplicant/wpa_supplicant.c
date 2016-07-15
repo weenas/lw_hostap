@@ -300,7 +300,7 @@ static void wpa_supplicant_cleanup(struct wpa_supplicant *wpa_s)
 
 
 	if (wpa_s->conf != NULL) {
-		/*wpa_config_free(wpa_s->conf);*/
+		wpa_config_free(wpa_s->conf);
 		wpa_s->conf = NULL;
 	}
 
@@ -1489,6 +1489,12 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s)
 				   
 {
 	struct wpa_driver_capa capa;
+
+	wpa_s->conf = wpa_config_alloc_empty();
+	if (wpa_s->conf == NULL) {
+		wpa_printf(MSG_ERROR, "\nNo configuration found.");
+		return -1;
+	}
 
 	/* RSNA Supplicant Key Management - INITIALIZE */
 	eapol_sm_notify_portEnabled(wpa_s->eapol, FALSE);

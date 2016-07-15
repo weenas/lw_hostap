@@ -345,8 +345,7 @@ void wpa_config_set_blob(struct wpa_config *config,
 void wpa_config_free_blob(struct wpa_config_blob *blob);
 int wpa_config_remove_blob(struct wpa_config *config, const char *name);
 
-struct wpa_config * wpa_config_alloc_empty(const char *ctrl_interface,
-					   const char *driver_param);
+struct wpa_config * wpa_config_alloc_empty(void);
 #ifndef CONFIG_NO_STDOUT_DEBUG
 void wpa_config_debug_dump_networks(struct wpa_config *config);
 #else /* CONFIG_NO_STDOUT_DEBUG */

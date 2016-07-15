@@ -39,12 +39,12 @@ install: all
 	for i in $(ALL); do cp $$i $(DESTDIR)$(BINDIR)/$$i; done
 	$(MAKE) -C ../src install
 
+OBJS = config.o
 OBJS += notify_none.o
 OBJS += bss.o
 #OBJS += eap_register.o
 OBJS += ../src/utils/common.o
 OBJS += ../src/utils/wpa_debug.o
-#OBJS += ../src/utils/wpabuf.o
 OBJS_p = wpa_passphrase.o
 OBJS_p += ../src/utils/common.o
 OBJS_p += ../src/utils/wpa_debug.o
@@ -499,6 +499,7 @@ endif
 CFLAGS += -DCONFIG_WPS -DEAP_WSC
 OBJS += wps_supplicant.o
 OBJS += ../src/utils/uuid.o
+OBJS += ../src/utils/wpabuf.o
 OBJS += ../src/eap_peer/eap_wsc.o ../src/eap_common/eap_wsc_common.o
 OBJS += ../src/wps/wps.o
 OBJS += ../src/wps/wps_common.o

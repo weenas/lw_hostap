@@ -275,7 +275,7 @@ CONFIG_NO_CONFIG_BLOBS=y
 # main = UNIX/POSIX like main() function (default)
 # main_winsvc = Windows service (read parameters from registry)
 # main_none = Very basic example (development use only)
-CONFIG_MAIN=main_none
+CONFIG_MAIN=main
 
 # Select wrapper for operatins system and C library specific functions
 # unix = UNIX/POSIX like systems (default)
