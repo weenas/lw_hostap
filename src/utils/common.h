@@ -75,6 +75,24 @@ static inline unsigned int bswap_32(unsigned int v)
 #define __BYTE_ORDER __LITTLE_ENDIAN
 #endif /* __SYMBIAN32__ */
 
+#if defined(__cskyLE__) || defined(__cskyBE__)
+#ifdef __cskyLE__
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#else
+#define __BYTE_ORDER __BIG_ENDIAN
+#endif /* __cskyLE__ */
+static inline unsigned short bswap_16(unsigned short v)
+{
+	return ((v & 0xff) << 8) | (v >> 8);
+}
+
+static inline unsigned int bswap_32(unsigned int v)
+{
+	return ((v & 0xff) << 24) | ((v & 0xff00) << 8) |
+		((v & 0xff0000) >> 8) | (v >> 24);
+}
+#endif /* defined(__cskyLE__) || defined(__cskyBE__) */
+
 #ifdef CONFIG_NATIVE_WINDOWS
 #include <winsock.h>
 
