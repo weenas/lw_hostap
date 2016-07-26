@@ -1453,6 +1453,9 @@ clean:
 	$(MAKE) -C ../src clean
 	rm -f core *~ *.o *.d eap_*.so $(ALL)
 	rm -f wpa_priv
+	@if [ -f ../libwifi.a ]; then \
+		rm -f ../libwifi.a; \
+	fi
 
 distclean: clean
 	rm -f .config

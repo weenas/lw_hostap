@@ -4,7 +4,6 @@ endif
 
 all:
 ifdef CONFIG_ARCH
-	echo $(CONFIG_ARCH)
 ifeq ($(CONFIG_WIFI_STA),y)
 	$(Q) $(MAKE) -C wpa_supplicant CONFIG_ARCH="$(CONFIG_ARCH)"
 endif
@@ -29,7 +28,6 @@ else
 	$(Q) $(MAKE) -C wpa_supplicant clean
 	$(Q) $(MAKE) -C hostapd clean
 endif
-	$(Q) rm -rf libwifi.a
 
 distclean:
 ifdef CONFIG_ARCH
