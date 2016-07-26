@@ -748,6 +748,10 @@ else
 CFLAGS += -DCONFIG_NO_WPA
 endif
 
+ifdef CONFIG_ARCH
+CONFIG_NAME=$(CONFIG_ARCH)_
+endif
+
 #ALL=hostapd hostapd_cli
 ALL=hostapd
 
@@ -766,7 +770,7 @@ endif
 	@$(E) "  CC " $<
 
 .config:
-	cp defconfig .config
+	cp $(CONFIG_NAME)defconfig .config
 
 verify_config:
 	@if [ ! -r .config ]; then \
@@ -839,5 +843,8 @@ clean:
 	$(MAKE) -C ../src clean
 	rm -f core *~ *.o hostapd hostapd_cli nt_password_hash hlr_auc_gw
 	rm -f *.d
+
+distclean: clean
+	rm -f .config
 
 -include $(OBJS:%.o=%.d)

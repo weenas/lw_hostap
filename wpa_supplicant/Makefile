@@ -12,6 +12,10 @@ export BINDIR ?= /usr/local/sbin/
 CFLAGS += -I../src
 CFLAGS += -I../src/utils
 
+ifdef CONFIG_ARCH
+CONFIG_NAME=$(CONFIG_ARCH)_
+endif
+
 #ALL=wpa_supplicant wpa_passphrase wpa_cli
 ALL=wpa_supplicant
 
@@ -19,7 +23,7 @@ ALL=wpa_supplicant
 all: .config libwifi
 
 .config:
-	cp defconfig .config
+	cp $(CONFIG_NAME)defconfig .config
 
 verify_config:
 	@if [ ! -r .config ]; then \
@@ -1032,6 +1036,9 @@ endif
 ifdef CONFIG_FIPS
 MD5OBJS += ../src/crypto/md5-non-fips.o
 endif
+ifeq ($(CONFIG_ARCH), csky)
+MD5OBJS += ../src/crypto/md5_nuttx.o
+endif
 OBJS += $(MD5OBJS)
 OBJS_p += $(MD5OBJS)
 endif
@@ -1446,5 +1453,8 @@ clean:
 	$(MAKE) -C ../src clean
 	rm -f core *~ *.o *.d eap_*.so $(ALL)
 	rm -f wpa_priv
+
+distclean: clean
+	rm -f .config
 
 -include $(OBJS:%.o=%.d)
