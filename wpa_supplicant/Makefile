@@ -12,6 +12,10 @@ export BINDIR ?= /usr/local/sbin/
 CFLAGS += -I../src
 CFLAGS += -I../src/utils
 
+ifdef CONFIG_ARCH
+CONFIG_NAME=$(CONFIG_ARCH)_
+endif
+
 #ALL=wpa_supplicant wpa_passphrase wpa_cli
 ALL=wpa_supplicant
 
@@ -19,7 +23,7 @@ ALL=wpa_supplicant
 all: .config libwifi
 
 .config:
-	cp defconfig .config
+	cp $(CONFIG_NAME)defconfig .config
 
 verify_config:
 	@if [ ! -r .config ]; then \
