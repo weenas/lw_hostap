@@ -15,7 +15,11 @@ CFLAGS += -I../src/utils
 #ALL=wpa_supplicant wpa_passphrase wpa_cli
 ALL=wpa_supplicant
 
-all: verify_config $(ALL) dynamic_eap_methods
+#all: verify_config $(ALL) dynamic_eap_methods
+all: .config libwifi
+
+.config:
+	cp defconfig .config
 
 verify_config:
 	@if [ ! -r .config ]; then \
@@ -1267,7 +1271,8 @@ ifndef CONFIG_AP
 OBJS_t += ../src/utils/ip_addr.o
 endif
 OBJS_t2 := $(OBJS) $(OBJS_l2) preauth_test.o
-OBJS += $(CONFIG_MAIN).o
+#OBJS += $(CONFIG_MAIN).o
+OBJS += wpa_supplicant_main.o
 
 ifdef CONFIG_PRIVSEP
 OBJS_priv += $(OBJS_d) ../src/drivers/drivers.o
@@ -1435,6 +1440,8 @@ test-eap_sim_common: $(TEST_EAP_SIM_COMMON_OBJS)
 
 tests: test-eap_sim_common
 
+libwifi: $(OBJS)
+	$(AR) rcs ../libwifi.a $^
 clean:
 	$(MAKE) -C ../src clean
 	rm -f core *~ *.o *.d eap_*.so $(ALL)
