@@ -71,7 +71,7 @@ void * aes_decrypt_init(const u8 *key, size_t len)
 	return rk;
 }
 
-static void rijndaelDecrypt(const u32 rk[/*44*/], const u8 ct[16], u8 pt[16])
+void rijndaelDecrypt(const u32 rk[/*44*/], const u8 ct[16], u8 pt[16])
 {
 	u32 s0, s1, s2, s3, t0, t1, t2, t3;
 	const int Nr = 10;
@@ -138,10 +138,10 @@ d##3 = TD0(s##3) ^ TD1(s##2) ^ TD2(s##1) ^ TD3(s##0) ^ rk[4 * i + 3]
 	PUTU32(pt + 12, s3);
 }
 
-void aes_decrypt(void *ctx, const u8 *crypt, u8 *plain)
+/*void aes_decrypt(void *ctx, const u8 *crypt, u8 *plain)
 {
 	rijndaelDecrypt(ctx, crypt, plain);
-}
+}*/
 
 
 void aes_decrypt_deinit(void *ctx)

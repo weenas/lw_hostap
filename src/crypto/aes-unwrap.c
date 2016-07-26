@@ -57,7 +57,8 @@ int aes_unwrap(const u8 *kek, int n, const u8 *cipher, u8 *plain)
 			b[7] ^= n * j + i;
 
 			os_memcpy(b + 8, r, 8);
-			aes_decrypt(ctx, b, b);
+			/*aes_decrypt(ctx, b, b);*/
+			rijndaelDecrypt(ctx, b, b);
 			os_memcpy(a, b, 8);
 			os_memcpy(r, b + 8, 8);
 			r -= 8;

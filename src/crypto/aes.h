@@ -21,6 +21,7 @@ void * aes_encrypt_init(const u8 *key, size_t len);
 void aes_encrypt(void *ctx, const u8 *plain, u8 *crypt);
 void aes_encrypt_deinit(void *ctx);
 void * aes_decrypt_init(const u8 *key, size_t len);
+void rijndaelDecrypt(const u32 rk[/*44*/], const u8 ct[16], u8 pt[16]);
 void aes_decrypt(void *ctx, const u8 *crypt, u8 *plain);
 void aes_decrypt_deinit(void *ctx);
 
