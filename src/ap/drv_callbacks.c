@@ -419,7 +419,7 @@ static void hostapd_event_eapol_rx(struct hostapd_data *hapd, const u8 *src,
 #endif /* CONFIG_NO_WPA */
 
 
-void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
+void hostapd_event(void *ctx, enum wpa_event_type event,
 			  union wpa_event_data *data)
 {
 	struct hostapd_data *hapd = ctx;
