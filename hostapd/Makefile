@@ -840,4 +840,7 @@ clean:
 	rm -f core *~ *.o hostapd hostapd_cli nt_password_hash hlr_auc_gw
 	rm -f *.d
 
+distclean: clean
+	rm -f .config
+
 -include $(OBJS:%.o=%.d)

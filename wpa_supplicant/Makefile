@@ -1447,4 +1447,7 @@ clean:
 	rm -f core *~ *.o *.d eap_*.so $(ALL)
 	rm -f wpa_priv
 
+distclean: clean
+	rm -f .config
+
 -include $(OBJS:%.o=%.d)
