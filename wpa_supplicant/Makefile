@@ -1036,6 +1036,9 @@ endif
 ifdef CONFIG_FIPS
 MD5OBJS += ../src/crypto/md5-non-fips.o
 endif
+ifeq ($(CONFIG_ARCH), csky)
+MD5OBJS += ../src/crypto/md5_nuttx.o
+endif
 OBJS += $(MD5OBJS)
 OBJS_p += $(MD5OBJS)
 endif
