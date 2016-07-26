@@ -222,7 +222,7 @@ static int hostapd_global_run(struct hostapd_iface *ifaces)
 }
 
 
-int main(int argc, char *argv[])
+int hostapd_main(int argc, char *argv[])
 {
 	int ret = 1;
 	size_t i;

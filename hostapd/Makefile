@@ -36,7 +36,7 @@ CFLAGS += -DCONFIG_NATIVE_WINDOWS
 LIBS += -lws2_32
 endif
 
-OBJS += main.o
+OBJS += hostapd_main.o
 #OBJS += config_file.o
 
 OBJS += ../src/ap/hostapd.o
@@ -751,7 +751,8 @@ endif
 #ALL=hostapd hostapd_cli
 ALL=hostapd
 
-all: verify_config $(ALL)
+#all: verify_config $(ALL)
+all: .config libwifi
 
 Q=@
 E=echo
@@ -763,6 +764,9 @@ endif
 %.o: %.c
 	$(Q)$(CC) -c -o $@ $(CFLAGS) $<
 	@$(E) "  CC " $<
+
+.config:
+	cp defconfig .config
 
 verify_config:
 	@if [ ! -r .config ]; then \
@@ -786,6 +790,9 @@ BCHECK=../src/drivers/build.hostapd
 
 hostapd: $(BCHECK) $(OBJS)
 	$(CC) $(LDFLAGS) -o hostapd $(OBJS) $(LIBS)
+
+libwifi: $(OBJS)
+	$(AR) rcs ../libwifi.a $^
 
 OBJS_c = hostapd_cli.o ../src/common/wpa_ctrl.o ../src/utils/os_$(CONFIG_OS).o
 ifdef CONFIG_WPA_TRACE
